@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tony’s Tense Casino</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Figtree:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E4EEE7; --bg-dot:#CFE0D5;
+  --ink:#1D2320; --muted:#56635D;
+  --panel:#FFFFFF; --panel-line:#D3DCD6; --hint-bg:#F6F1E3;
+  --cab:#6B1424; --cab-2:#430A16; --brass:#D4A72C; --brass-2:#9C7618;
+  --reel:#FFF9EC; --reel-ink:#24130F;
+  --t-past:#B3261E; --t-ps:#2F6B2F; --t-pc:#B85412; --t-gt:#5B3E9B;
+  --chip-ink:#FFFFFF; --coin:#8A6510;
+  --ok:#2E7D4F; --no:#B3261E;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1D17; --bg-dot:#16302A;
+    --ink:#ECEFEA; --muted:#A3B0AA;
+    --panel:#162720; --panel-line:#2A3F35; --hint-bg:#1F3329;
+    --cab:#5A0F1E; --cab-2:#33070F;
+    --t-past:#EF6A62; --t-ps:#79BF68; --t-pc:#F49A55; --t-gt:#A88CEB;
+    --chip-ink:#10140F; --coin:#E8BE48;
+    --ok:#4CBF7A; --no:#EF6A62;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1D17; --bg-dot:#16302A;
+  --ink:#ECEFEA; --muted:#A3B0AA;
+  --panel:#162720; --panel-line:#2A3F35; --hint-bg:#1F3329;
+  --cab:#5A0F1E; --cab-2:#33070F;
+  --t-past:#EF6A62; --t-ps:#79BF68; --t-pc:#F49A55; --t-gt:#A88CEB;
+  --chip-ink:#10140F; --coin:#E8BE48;
+  --ok:#4CBF7A; --no:#EF6A62;
+  color-scheme: dark;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background-color:var(--bg);background-image:radial-gradient(var(--bg-dot) 1.2px,transparent 1.4px);background-size:18px 18px;color:var(--ink);font-family:Figtree,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}
+.wrap{max-width:1000px;margin:0 auto;padding:22px 16px 48px}
+:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+
+/* ---------- machine ---------- */
+.machine{position:relative;max-width:860px;margin:0 auto}
+.marquee{background:var(--cab-2);border:6px solid var(--brass);border-bottom:none;border-radius:140px 140px 0 0;padding:18px 24px 14px;text-align:center}
+.bulbs{display:flex;justify-content:space-between;padding:0 18%;margin-bottom:10px}
+.bulb{width:10px;height:10px;border-radius:50%;background:#FFE08A;box-shadow:0 0 8px #FFD24D}
+body.spinning .bulb{animation:chase .5s infinite steps(2);animation-delay:calc(var(--i) * -0.1s)}
+@keyframes chase{50%{opacity:.2;box-shadow:none}}
+h1{font-family:Bungee,Impact,"Arial Black",sans-serif;font-weight:400;color:var(--brass);font-size:clamp(22px,4.6vw,40px);margin:0;line-height:1.1;text-shadow:0 3px 0 #1E0308}
+.tagline{color:#F3DDB0;font-size:14px;margin:6px 0 0}
+.cabinet{background:linear-gradient(180deg,var(--cab),var(--cab-2));border:6px solid var(--brass);border-radius:0 0 28px 28px;padding:20px 22px 24px;box-shadow:0 22px 40px -22px rgba(0,0,0,.6)}
+.labels,.reels,.holds{display:grid;grid-template-columns:1fr 1.45fr 1.2fr .7fr;gap:10px}
+.labels{padding:0 12px;margin-bottom:6px}
+.labels span{color:#F3DDB0;font-size:13px;font-weight:600;text-align:center}
+.reels{position:relative;background:#22050C;padding:12px;border-radius:14px;border:3px solid var(--brass-2)}
+.reels::before,.reels::after{content:"";position:absolute;top:50%;width:0;height:0;border:9px solid transparent;transform:translateY(-50%)}
+.reels::before{left:-3px;border-left-color:var(--brass)}
+.reels::after{right:-3px;border-right-color:var(--brass)}
+.win{--cellh:clamp(72px,13vw,104px);height:var(--cellh);overflow:hidden;background:var(--reel);border-radius:8px;position:relative;box-shadow:inset 0 12px 14px -8px rgba(0,0,0,.5),inset 0 -12px 14px -8px rgba(0,0,0,.5);transition:box-shadow .2s}
+.win::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(60,20,0,.16),transparent 32%,transparent 68%,rgba(60,20,0,.16));pointer-events:none}
+.win.held{box-shadow:inset 0 0 0 3px var(--brass),inset 0 12px 14px -8px rgba(0,0,0,.5)}
+.win.landed .strip{animation:land .28s ease-out}
+@keyframes land{40%{transform:translateY(4px)}}
+.strip{will-change:transform}
+.cell{height:var(--cellh);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px 6px;color:var(--reel-ink)}
+.w{font-weight:800;font-size:clamp(14px,2.5vw,24px);line-height:1.1}
+.tm-past{color:#B3261E}.tm-ps{color:#2F6B2F}.tm-pc{color:#B85412}.tm-gt{color:#5B3E9B}
+body.noclue .w[class*="tm-"]{color:var(--reel-ink)}
+.sym{font-family:Bungee,Impact,sans-serif;font-size:clamp(28px,5vw,46px);line-height:1}
+.capt{font-size:12px;color:#7A6A5E;margin-top:2px}
+.holds{margin-top:10px;padding:0 12px}
+.hold{font:inherit;font-size:13px;font-weight:700;padding:6px 4px;border-radius:999px;border:2px solid var(--brass-2);background:#2E0610;color:#F3DDB0;cursor:pointer}
+.hold[aria-pressed="true"]{background:var(--brass);color:#2A0710;border-color:var(--brass)}
+.hold:disabled{opacity:.45;cursor:default}
+.spinrow{display:flex;justify-content:center;margin-top:20px}
+.spin{font-family:Bungee,Impact,sans-serif;font-size:clamp(20px,3vw,26px);padding:14px 52px;border-radius:999px;border:4px solid var(--brass);background:radial-gradient(circle at 50% 30%,#EE4B42,#9E1410);color:#fff;box-shadow:0 6px 0 #4E0806;cursor:pointer;transition:transform .08s,box-shadow .08s}
+.spin:active:not(:disabled){transform:translateY(4px);box-shadow:0 2px 0 #4E0806}
+.spin:disabled{filter:grayscale(.5) brightness(.85);cursor:default}
+.keys{color:#E8CFA0;font-size:12px;text-align:center;margin:10px 0 0}
+
+.lever{position:absolute;right:-40px;top:170px;width:30px;height:170px;cursor:pointer;background:none;border:none;padding:0}
+.lever .rod{position:absolute;left:12px;top:24px;width:6px;height:118px;border-radius:3px;background:linear-gradient(90deg,#8C8C8C,#F0F0F0,#8C8C8C);transform-origin:50% 100%}
+.lever .knob{position:absolute;left:0;top:0;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#FF8A80,#B3121A);box-shadow:0 3px 6px rgba(0,0,0,.4)}
+.lever .base{position:absolute;left:3px;top:136px;width:24px;height:34px;border-radius:6px;background:var(--brass-2)}
+.lever.pull .rod{animation:rod .7s ease}
+.lever.pull .knob{animation:knob .7s ease}
+@keyframes rod{40%{transform:scaleY(.4)}}
+@keyframes knob{40%{transform:translateY(72px)}}
+@media (max-width:980px){.lever{display:none}}
+
+/* ---------- board ---------- */
+.board{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;max-width:860px;margin:24px auto 0}
+.card{background:var(--panel);border:1px solid var(--panel-line);border-radius:16px;padding:18px 20px}
+.prompt{color:var(--muted);margin:0 0 8px;font-size:15px}
+.answer{font-size:clamp(20px,3vw,28px);font-weight:800;line-height:1.25;min-height:1.3em;margin:0}
+.gonna{color:var(--muted);margin:6px 0 0;font-size:15px}
+.gonna b{color:var(--ink)}
+.chip{display:inline-block;background:var(--tc);color:var(--chip-ink);font-weight:800;font-size:13px;padding:3px 11px;border-radius:999px;margin-bottom:8px}
+.hintbox{margin-top:12px;padding:10px 14px;border-left:4px solid var(--tc,var(--brass));background:var(--hint-bg);border-radius:0 10px 10px 0;font-size:15px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.btn{font:inherit;font-weight:700;font-size:15px;padding:10px 16px;border-radius:12px;border:2px solid var(--panel-line);background:var(--panel);color:var(--ink);cursor:pointer}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.no{border-color:var(--no);color:var(--no);background:transparent}
+.btn:disabled{opacity:.38;cursor:default}
+[hidden]{display:none!important}
+
+.coins{display:flex;align-items:baseline;gap:10px;margin:0}
+.coins strong{font-family:Bungee,Impact,sans-serif;font-weight:400;font-size:44px;color:var(--coin);line-height:1}
+.coins span{color:var(--muted)}
+.streak{display:flex;align-items:center;gap:8px;margin:8px 0 16px;color:var(--muted);font-size:14px}
+.pip{width:16px;height:16px;border-radius:50%;border:2px solid var(--brass);}
+.pip.on{background:var(--brass)}
+.trow{display:grid;grid-template-columns:1fr auto;gap:2px 10px;margin-bottom:10px;font-size:14px}
+.trow .nm{font-weight:700;color:var(--tc)}
+.trow .rt{color:var(--muted);font-variant-numeric:tabular-nums}
+.bar{grid-column:1 / -1;height:8px;border-radius:4px;background:var(--panel-line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--tc);transition:width .4s}
+
+.settings{max-width:860px;margin:16px auto 0}
+.settings summary{cursor:pointer;font-weight:700}
+.setgrid{display:grid;gap:14px;margin-top:14px}
+.setgrid h3{font-size:14px;margin:0 0 6px;color:var(--muted);font-weight:600}
+.toggles{display:flex;flex-wrap:wrap;gap:8px}
+.tg{font:inherit;font-size:14px;font-weight:700;padding:7px 14px;border-radius:999px;border:2px solid var(--tc,var(--panel-line));background:transparent;color:var(--ink);cursor:pointer}
+.tg[aria-pressed="true"]{background:var(--tc,var(--ink));color:var(--chip-ink);border-color:var(--tc,var(--ink))}
+.tg.plain[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+
+/* ---------- jackpot ---------- */
+.jackpot{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:50}
+.jp{font-family:Bungee,Impact,sans-serif;background:#33070F;color:#D4A72C;border:5px solid #D4A72C;border-radius:22px;padding:18px 40px;text-align:center;font-size:clamp(34px,8vw,68px);line-height:1.05;animation:pop .45s cubic-bezier(.2,1.6,.4,1)}
+.jp small{display:block;font-family:Figtree,sans-serif;font-weight:800;font-size:20px;color:#F3DDB0;margin-top:6px}
+@keyframes pop{from{transform:scale(.4);opacity:0}}
+.coin{position:fixed;top:-50px;font-size:30px;animation:fall linear forwards;z-index:49;pointer-events:none}
+@keyframes fall{to{transform:translateY(115vh) rotate(600deg)}}
+
+@media (max-width:720px){
+  .board{grid-template-columns:1fr}
+  .cabinet{padding:14px 10px 18px}
+  .labels,.reels,.holds{gap:6px}
+  .reels{padding:8px}
+  .labels,.holds{padding:0 8px}
+  .marquee{border-radius:70px 70px 0 0}
+  .hold{font-size:12px}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="index.html" style="display:inline-block;margin-bottom:14px;color:var(--ink);font-weight:700;text-decoration:none">← All games</a>
+  <div class="machine">
+    <div class="marquee">
+      <div class="bulbs" id="bulbs"></div>
+      <h1>Tony’s Tense Casino</h1>
+      <p class="tagline">Spin. Look at the time word. Say the sentence.</p>
+    </div>
+    <div class="cabinet">
+      <div class="labels"><span>Who</span><span>Do what</span><span>When</span><span>Form</span></div>
+      <div class="reels" id="reels"></div>
+      <div class="holds" id="holds"></div>
+      <div class="spinrow"><button class="spin" id="spinBtn">Spin</button></div>
+      <p class="keys">Space = spin · Enter = show answer · Hold keeps a reel for the next spin</p>
+    </div>
+    <button class="lever" id="lever" aria-label="Pull the lever to spin"><span class="rod"></span><span class="knob"></span><span class="base"></span></button>
+  </div>
+
+  <div class="board">
+    <section class="card" aria-live="polite">
+      <p class="prompt" id="prompt">Pull the lever to start.</p>
+      <div id="chipWrap" hidden><span class="chip" id="chip"></span></div>
+      <p class="answer" id="answer"></p>
+      <p class="gonna" id="gonna" hidden></p>
+      <div class="hintbox" id="hintBox" hidden></div>
+      <div class="actions">
+        <button class="btn" id="hintBtn" disabled>Hint (−5)</button>
+        <button class="btn" id="showBtn" disabled>Show answer</button>
+        <button class="btn ok" id="okBtn" disabled>Correct ✓</button>
+        <button class="btn no" id="noBtn" disabled>Not yet ✗</button>
+      </div>
+    </section>
+    <section class="card">
+      <p class="coins"><strong id="coins">0</strong><span>coins</span></p>
+      <div class="streak"><span id="pips"><span class="pip"></span> <span class="pip"></span> <span class="pip"></span></span><span>3 in a row = jackpot</span></div>
+      <div id="stats"></div>
+      <p class="prompt" style="margin-top:6px">Spins: <b id="spins">0</b></p>
+    </section>
+  </div>
+
+  <details class="card settings">
+    <summary>Teacher settings</summary>
+    <div class="setgrid">
+      <div><h3>Tenses in the game</h3><div class="toggles" id="tenseToggles"></div></div>
+      <div><h3>Forms</h3><div class="toggles" id="formToggles"></div></div>
+      <div><h3>Extras</h3><div class="toggles">
+        <button class="tg plain" id="clueTg" aria-pressed="true">Colour clues on time words</button>
+        <button class="tg plain" id="soundTg" aria-pressed="true">Sound</button>
+        <button class="tg plain" id="resetBtn" aria-pressed="false">Reset score</button>
+      </div></div>
+    </div>
+  </details>
+</div>
+
+<div class="jackpot" id="jackpot" hidden><div class="jp">Jackpot!<small>+25 bonus coins</small></div></div>
+
+<script>
+(function(){
+const A = "\u2019";
+const SUBJECTS = [
+  {reel:"I", s:"I", p:"I"},
+  {reel:"You", s:"you", p:"you"},
+  {reel:"Tony", s:"Tony", p:"he"},
+  {reel:"Mia", s:"Mia", p:"she"},
+  {reel:"Joe", s:"Joe", p:"he"},
+  {reel:"Anna", s:"Anna", p:"she"},
+  {reel:"We", s:"we", p:"we"},
+  {reel:"My friends", s:"my friends", p:"they"}
+];
+const VERBS = [
+  ["play CS2","plays CS2","played CS2","playing CS2"],
+  ["eat pizza","eats pizza","ate pizza","eating pizza"],
+  ["smoke a hookah","smokes a hookah","smoked a hookah","smoking a hookah"],
+  ["drive to work","drives to work","drove to work","driving to work"],
+  ["fly to Dubai","flies to Dubai","flew to Dubai","flying to Dubai"],
+  ["watch a series","watches a series","watched a series","watching a series"],
+  ["pay the bills","pays the bills","paid the bills","paying the bills"],
+  ["listen to rap","listens to rap","listened to rap","listening to rap"],
+  ["have a nap","has a nap","had a nap","having a nap"],
+  ["pack a suitcase","packs a suitcase","packed a suitcase","packing a suitcase"],
+  ["go to the gym","goes to the gym","went to the gym","going to the gym"],
+  ["drink coffee","drinks coffee","drank coffee","drinking coffee"],
+  ["take a taxi","takes a taxi","took a taxi","taking a taxi"],
+  ["buy a yacht","buys a yacht","bought a yacht","buying a yacht"],
+  ["meet friends","meets friends","met friends","meeting friends"],
+  ["cook dinner","cooks dinner","cooked dinner","cooking dinner"],
+  ["work on a CRM","works on a CRM","worked on a CRM","working on a CRM"],
+  ["sleep in the car","sleeps in the car","slept in the car","sleeping in the car"]
+].map(a => ({base:a[0], s:a[1], past:a[2], ing:a[3]}));
+const TENSES = {
+  ps:  {name:"Present simple", ex:"usually", color:"var(--t-ps)"},
+  past:{name:"Past simple", ex:"last Friday", color:"var(--t-past)"},
+  pc:  {name:"Present continuous", ex:"RN", color:"var(--t-pc)"},
+  gt:  {name:"Going to", ex:"next week", color:"var(--t-gt)"}
+};
+const TORDER = ["ps","past","pc","gt"];
+const TIMES = [
+  {t:"usually",k:"ps",mid:true},{t:"every day",k:"ps"},{t:"on Fridays",k:"ps"},{t:"almost every day",k:"ps"},
+  {t:"last Friday",k:"past"},{t:"yesterday",k:"past"},{t:"two days ago",k:"past"},{t:"last night",k:"past"},
+  {t:"RN",k:"pc"},{t:"right now",k:"pc"},{t:"at the moment",k:"pc"},
+  {t:"next week",k:"gt"},{t:"tomorrow",k:"gt"},{t:"on Sunday",k:"gt"},{t:"this weekend",k:"gt"}
+];
+const FORMS = [
+  {k:"pos", sym:"+", cap:"yes", name:"Positive +"},
+  {k:"neg", sym:"\u2212", cap:"no", name:"Negative \u2212"},
+  {k:"q", sym:"?", cap:"question", name:"Question ?"}
+];
+
+const settings = {tenses:{ps:true,past:true,pc:true,gt:true}, forms:{pos:true,neg:true,q:true}, clue:true, sound:true};
+const rand = arr => arr[Math.floor(Math.random()*arr.length)];
+const cap = x => x.charAt(0).toUpperCase() + x.slice(1);
+const third = p => p === "he" || p === "she";
+const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function be(sub){
+  const s = sub.s;
+  if (sub.p === "I") return {pos:"I"+A+"m", neg:"I"+A+"m not", q:"am I", sh:"I"+A+"m", w:"am"};
+  if (s === "you" || s === "we") return {pos:s+A+"re", neg:s+" aren"+A+"t", q:"are "+s, sh:s+A+"re", w:"are"};
+  if (third(sub.p)) return {pos:s+" is", neg:s+" isn"+A+"t", q:"is "+s, sh:s+A+"s", w:"is"};
+  return {pos:s+" are", neg:s+" aren"+A+"t", q:"are "+s, sh:s+" are", w:"are"};
+}
+
+function build(sub, v, tm, f){
+  const s = sub.s, end = tm.mid ? "" : " " + tm.t, md = tm.mid ? tm.t + " " : "";
+  let out, gonna = null;
+  if (tm.k === "ps"){
+    const th = third(sub.p);
+    if (f === "pos") out = s+" "+md+(th ? v.s : v.base)+end+".";
+    else if (f === "neg") out = s+" "+(th ? "doesn"+A+"t" : "don"+A+"t")+" "+md+v.base+end+".";
+    else out = (th ? "does " : "do ")+s+" "+md+v.base+end+"?";
+  } else if (tm.k === "past"){
+    if (f === "pos") out = s+" "+v.past+end+".";
+    else if (f === "neg") out = s+" didn"+A+"t "+v.base+end+".";
+    else out = "did "+s+" "+v.base+end+"?";
+  } else if (tm.k === "pc"){
+    const b = be(sub);
+    if (f === "pos") out = b.pos+" "+v.ing+end+".";
+    else if (f === "neg") out = b.neg+" "+v.ing+end+".";
+    else out = b.q+" "+v.ing+end+"?";
+  } else {
+    const b = be(sub);
+    if (f === "pos"){ out = b.pos+" going to "+v.base+end+"."; gonna = b.sh+" gonna "+v.base+end+"."; }
+    else if (f === "neg"){ out = b.neg+" going to "+v.base+end+"."; gonna = b.neg+" gonna "+v.base+end+"."; }
+    else { out = b.q+" going to "+v.base+end+"?"; gonna = b.q+" gonna "+v.base+end+"?"; }
+  }
+  return {text:cap(out), gonna: gonna ? cap(gonna) : null};
+}
+
+function hintFor(sub, tm, f){
+  const th = third(sub.p), w = be(sub).w, k = tm.k;
+  let p;
+  if (k === "ps"){
+    if (f === "pos") p = th ? "who + verb + s  (he / she → plays)" : "who + verb  (play)";
+    else if (f === "neg") p = "who + " + (th ? "doesn"+A+"t" : "don"+A+"t") + " + verb";
+    else p = (th ? "Does" : "Do") + " + who + verb … ?";
+  } else if (k === "past"){
+    if (f === "pos") p = "who + past form  (play → played, go → went)";
+    else if (f === "neg") p = "who + didn"+A+"t + verb";
+    else p = "Did + who + verb … ?";
+  } else if (k === "pc"){
+    if (f === "pos") p = "who + " + w + " + verb-ing";
+    else if (f === "neg") p = "who + " + w + " not + verb-ing";
+    else p = cap(w) + " + who + verb-ing … ?";
+  } else {
+    if (f === "pos") p = "who + " + w + " + going to + verb";
+    else if (f === "neg") p = "who + " + w + " not + going to + verb";
+    else p = cap(w) + " + who + going to + verb … ?";
+  }
+  return "<b>" + TENSES[k].name + "</b> — the time word is “" + tm.t + "”.<br>" + p;
+}
+
+/* ---------- sound ---------- */
+let ac = null;
+function tone(freq, dur, type, vol, when){
+  if (!settings.sound) return;
+  try{
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    const t0 = ac.currentTime + (when || 0);
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = type || "square"; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol || 0.035, t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(ac.destination);
+    o.start(t0); o.stop(t0 + dur + 0.02);
+  }catch(e){}
+}
+const winSound = () => [523,659,784,1047].forEach((f,i)=>tone(f,.18,"triangle",.06,i*.09));
+const jackpotSound = () => [523,659,784,1047,784,1047,1319].forEach((f,i)=>tone(f,.2,"triangle",.07,i*.08));
+
+/* ---------- reels ---------- */
+const reelsEl = document.getElementById("reels"), holdsEl = document.getElementById("holds");
+const allowedTimes = () => TIMES.filter(t => settings.tenses[t.k]);
+const allowedForms = () => FORMS.filter(f => settings.forms[f.k]);
+const reels = [
+  {key:"sub", pick:()=>rand(SUBJECTS), render:x=>`<span class="w">${x.reel}</span>`},
+  {key:"verb", pick:()=>rand(VERBS), render:x=>`<span class="w">${x.base}</span>`},
+  {key:"time", pick:()=>rand(allowedTimes()), render:x=>`<span class="w tm-${x.k}">${x.t}</span>`},
+  {key:"form", pick:()=>rand(allowedForms()), render:x=>`<span class="sym">${x.sym}</span><span class="capt">${x.cap}</span>`}
+];
+const held = [false,false,false,false];
+reels.forEach((r,i)=>{
+  const win = document.createElement("div"); win.className = "win";
+  const strip = document.createElement("div"); strip.className = "strip";
+  win.appendChild(strip); reelsEl.appendChild(win);
+  r.win = win; r.strip = strip; r.current = r.pick();
+  strip.innerHTML = `<div class="cell">${r.render(r.current)}</div>`;
+  const hb = document.createElement("button");
+  hb.className = "hold"; hb.textContent = "Hold"; hb.setAttribute("aria-pressed","false");
+  hb.addEventListener("click", ()=>{
+    held[i] = !held[i];
+    hb.setAttribute("aria-pressed", String(held[i]));
+    win.classList.toggle("held", held[i]);
+    tone(held[i] ? 660 : 440, .07, "square", .03);
+  });
+  holdsEl.appendChild(hb); r.holdBtn = hb;
+});
+
+function animateReel(r, final, dur){
+  return new Promise(res=>{
+    const h = r.win.clientHeight;
+    const items = [r.current];
+    const n = reduce ? 2 : 14 + Math.floor(dur/120);
+    for (let i=0;i<n;i++) items.push(r.pick());
+    items.push(final);
+    r.strip.innerHTML = items.map(x=>`<div class="cell">${r.render(x)}</div>`).join("");
+    r.strip.style.transition = "none";
+    r.strip.style.transform = "translateY(0)";
+    void r.strip.offsetHeight;
+    const d = reduce ? 150 : dur;
+    r.strip.style.transition = `transform ${d}ms cubic-bezier(.12,.62,.22,1.03)`;
+    r.strip.style.transform = `translateY(${-(items.length-1)*h}px)`;
+    setTimeout(()=>{
+      r.strip.style.transition = "none";
+      r.strip.innerHTML = `<div class="cell">${r.render(final)}</div>`;
+      r.strip.style.transform = "translateY(0)";
+      r.current = final;
+      r.win.classList.remove("landed"); void r.win.offsetWidth; r.win.classList.add("landed");
+      tone(180, .09, "square", .05);
+      res();
+    }, d + 30);
+  });
+}
+
+/* ---------- game state ---------- */
+const $ = id => document.getElementById(id);
+let spinning = false, phase = "idle", usedHint = false;
+let coins = 0, streak = 0, spins = 0;
+const stats = {ps:{a:0,c:0}, past:{a:0,c:0}, pc:{a:0,c:0}, gt:{a:0,c:0}};
+
+function setButtons(){
+  $("spinBtn").disabled = spinning;
+  $("hintBtn").disabled = !(phase === "spun");
+  $("showBtn").disabled = !(phase === "spun" || phase === "hinted");
+  $("okBtn").disabled = $("noBtn").disabled = !(phase === "revealed");
+  reels.forEach(r => r.holdBtn.disabled = spinning);
+}
+
+async function spin(){
+  if (spinning) return;
+  spinning = true; phase = "spinning"; usedHint = false;
+  document.body.classList.add("spinning");
+  const lever = $("lever"); lever.classList.remove("pull"); void lever.offsetWidth; lever.classList.add("pull");
+  $("prompt").textContent = "Spinning…";
+  $("answer").textContent = ""; $("gonna").hidden = true; $("hintBox").hidden = true; $("chipWrap").hidden = true;
+  setButtons();
+  const ticker = setInterval(()=>tone(700 + Math.random()*500, .025, "square", .018), 75);
+  // make sure held time / form are still allowed by settings
+  if (held[2] && !settings.tenses[reels[2].current.k]) held[2] = false;
+  if (held[3] && !settings.forms[reels[3].current.k]) held[3] = false;
+  await Promise.all(reels.map((r,i)=> held[i] ? Promise.resolve() : animateReel(r, r.pick(), 800 + i*380)));
+  clearInterval(ticker);
+  held.fill(false);
+  reels.forEach(r => { r.holdBtn.setAttribute("aria-pressed","false"); r.win.classList.remove("held"); });
+  spins++; $("spins").textContent = spins;
+  spinning = false; phase = "spun";
+  document.body.classList.remove("spinning");
+  $("prompt").textContent = "Your turn! Say the sentence out loud.";
+  setButtons();
+}
+
+function current(){
+  return {sub:reels[0].current, verb:reels[1].current, time:reels[2].current, form:reels[3].current};
+}
+
+function showHint(){
+  if (phase !== "spun") return;
+  const c = current();
+  usedHint = true; phase = "hinted";
+  const hb = $("hintBox");
+  hb.style.setProperty("--tc", TENSES[c.time.k].color);
+  hb.innerHTML = hintFor(c.sub, c.time, c.form.k);
+  hb.hidden = false;
+  tone(520, .1, "triangle", .05);
+  setButtons();
+}
+
+function reveal(){
+  if (!(phase === "spun" || phase === "hinted")) return;
+  const c = current();
+  const res = build(c.sub, c.verb, c.time, c.form.k);
+  const chip = $("chip");
+  chip.style.setProperty("--tc", TENSES[c.time.k].color);
+  chip.textContent = TENSES[c.time.k].name;
+  $("chipWrap").hidden = false;
+  $("answer").textContent = res.text;
+  if (res.gonna){ $("gonna").innerHTML = "Say it like an American: <b>" + res.gonna + "</b>"; $("gonna").hidden = false; }
+  $("prompt").textContent = "Did you say it right?";
+  phase = "revealed";
+  setButtons();
+}
+
+function mark(ok){
+  if (phase !== "revealed") return;
+  const k = current().time.k;
+  stats[k].a++;
+  if (ok){
+    stats[k].c++;
+    const gain = usedHint ? 5 : 10;
+    streak++;
+    let bonus = 0;
+    if (streak % 3 === 0){ bonus = 25; jackpot(); } else winSound();
+    addCoins(gain + bonus);
+    $("prompt").textContent = usedHint ? "Nice! +5 coins. Spin again." : "Great! +10 coins. Spin again.";
+  } else {
+    streak = 0;
+    tone(220, .25, "sawtooth", .04); tone(165, .3, "sawtooth", .04, .15);
+    $("prompt").textContent = "Say it again with the answer, then spin.";
+  }
+  phase = "marked";
+  renderStats(); setButtons();
+}
+
+function addCoins(n){
+  const from = coins; coins += n;
+  const el = $("coins"), t0 = performance.now(), dur = reduce ? 1 : 600;
+  (function step(t){
+    const p = Math.min(1, (t - t0)/dur);
+    el.textContent = Math.round(from + (coins - from)*p);
+    if (p < 1) requestAnimationFrame(step);
+  })(t0);
+}
+
+function jackpot(){
+  jackpotSound();
+  const j = $("jackpot"); j.hidden = false;
+  const coinsEls = [];
+  if (!reduce){
+    for (let i=0;i<26;i++){
+      const s = document.createElement("span");
+      s.className = "coin"; s.textContent = "🪙";
+      s.style.left = (Math.random()*100) + "vw";
+      s.style.animationDuration = (1.4 + Math.random()*1.2) + "s";
+      s.style.animationDelay = (Math.random()*.6) + "s";
+      document.body.appendChild(s); coinsEls.push(s);
+    }
+  }
+  setTimeout(()=>{ j.hidden = true; coinsEls.forEach(c=>c.remove()); }, 2700);
+}
+
+function renderStats(){
+  const pips = document.querySelectorAll(".pip");
+  const filled = streak % 3;
+  pips.forEach((p,i)=>p.classList.toggle("on", i < filled));
+  $("stats").innerHTML = TORDER.map(k=>{
+    const s = stats[k], pct = s.a ? Math.round(100*s.c/s.a) : 0;
+    return `<div class="trow" style="--tc:${TENSES[k].color}"><span class="nm">${TENSES[k].name}</span><span class="rt">${s.c} / ${s.a}</span><div class="bar"><i style="width:${pct}%"></i></div></div>`;
+  }).join("");
+}
+
+/* ---------- settings ---------- */
+const tt = $("tenseToggles");
+TORDER.forEach(k=>{
+  const b = document.createElement("button");
+  b.className = "tg"; b.style.setProperty("--tc", TENSES[k].color);
+  b.textContent = TENSES[k].name + " (" + TENSES[k].ex + ")";
+  b.setAttribute("aria-pressed","true");
+  b.addEventListener("click", ()=>{
+    const on = Object.values(settings.tenses).filter(Boolean).length;
+    if (settings.tenses[k] && on === 1) return;
+    settings.tenses[k] = !settings.tenses[k];
+    b.setAttribute("aria-pressed", String(settings.tenses[k]));
+  });
+  tt.appendChild(b);
+});
+const ft = $("formToggles");
+FORMS.forEach(f=>{
+  const b = document.createElement("button");
+  b.className = "tg plain"; b.textContent = f.name; b.setAttribute("aria-pressed","true");
+  b.addEventListener("click", ()=>{
+    const on = Object.values(settings.forms).filter(Boolean).length;
+    if (settings.forms[f.k] && on === 1) return;
+    settings.forms[f.k] = !settings.forms[f.k];
+    b.setAttribute("aria-pressed", String(settings.forms[f.k]));
+  });
+  ft.appendChild(b);
+});
+$("clueTg").addEventListener("click", e=>{
+  settings.clue = !settings.clue;
+  e.currentTarget.setAttribute("aria-pressed", String(settings.clue));
+  document.body.classList.toggle("noclue", !settings.clue);
+});
+$("soundTg").addEventListener("click", e=>{
+  settings.sound = !settings.sound;
+  e.currentTarget.setAttribute("aria-pressed", String(settings.sound));
+});
+$("resetBtn").addEventListener("click", ()=>{
+  coins = 0; streak = 0; spins = 0;
+  TORDER.forEach(k=>{ stats[k].a = 0; stats[k].c = 0; });
+  $("coins").textContent = "0"; $("spins").textContent = "0";
+  renderStats();
+});
+
+/* ---------- wiring ---------- */
+const bulbs = $("bulbs");
+for (let i=0;i<14;i++){ const b = document.createElement("span"); b.className = "bulb"; b.style.setProperty("--i", i); bulbs.appendChild(b); }
+$("spinBtn").addEventListener("click", spin);
+$("lever").addEventListener("click", spin);
+$("hintBtn").addEventListener("click", showHint);
+$("showBtn").addEventListener("click", reveal);
+$("okBtn").addEventListener("click", ()=>mark(true));
+$("noBtn").addEventListener("click", ()=>mark(false));
+document.addEventListener("keydown", e=>{
+  const tag = (e.target.tagName || "").toLowerCase();
+  if (tag === "button" || tag === "summary" || tag === "input") return;
+  if (e.code === "Space"){ e.preventDefault(); spin(); }
+  else if (e.key === "Enter"){ e.preventDefault(); reveal(); }
+});
+renderStats(); setButtons();
+})();
+</script>
+</body>
+</html>
