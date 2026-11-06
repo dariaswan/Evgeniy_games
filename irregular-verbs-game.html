@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Irregular verbs for the OGE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF2FF; --surface:#FFFFFF; --ink:#1B2440; --muted:#5A6386;
+  --sun:#FFC83D; --coral:#FF5D73; --mint:#1FA884; --line:#1B2440;
+  --soft:#DDE3FA;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141A30; --surface:#1F2745; --ink:#EEF1FF; --muted:#A8B0D6;
+    --sun:#FFC83D; --coral:#FF7186; --mint:#35C9A1; --line:#0A0E1E; --soft:#2A3358;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141A30; --surface:#1F2745; --ink:#EEF1FF; --muted:#A8B0D6;
+  --sun:#FFC83D; --coral:#FF7186; --mint:#35C9A1; --line:#0A0E1E; --soft:#2A3358;
+  color-scheme: dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.5 Rubik,system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
+main{max-width:760px;margin:0 auto;padding:28px 18px 60px}
+h1,h2,.big{font-family:Bungee,Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing:.5px;margin:0}
+h1{font-size:clamp(30px,7vw,46px);line-height:1.05}
+h2{font-size:20px;margin:28px 0 10px}
+p{margin:6px 0}
+.sub{color:var(--muted);margin-top:8px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+
+/* chunky block style: the one bold element */
+.block{background:var(--surface);border:2.5px solid var(--line);border-radius:14px;box-shadow:4px 4px 0 var(--line)}
+.seg{display:flex;flex-wrap:wrap;gap:10px}
+.opt{padding:10px 16px;border:2.5px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:3px 3px 0 var(--line);transition:transform .08s}
+.opt:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--line)}
+.opt[aria-pressed="true"]{background:var(--sun);color:#1B2440}
+.games{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+.game{text-align:left;padding:16px;border:2.5px solid var(--line);border-radius:16px;background:var(--surface);box-shadow:4px 4px 0 var(--line)}
+.game strong{display:block;font-family:Bungee,Impact,sans-serif;font-weight:400;font-size:18px;margin-bottom:4px}
+.game span{color:var(--muted);font-size:15px}
+.game:hover{background:var(--soft)}
+.game:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--line)}
+.amount{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+input[type=range]{flex:1;min-width:180px;accent-color:var(--coral)}
+.count{font-family:Bungee,Impact,sans-serif;font-size:26px;min-width:56px}
+details{margin-top:14px}
+summary{cursor:pointer;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{padding:3px 10px;border-radius:999px;background:var(--soft);font-size:14px}
+.chip em,.missed em{font-style:normal;color:var(--muted)}
+h2 small,.game small{display:block;font-family:Rubik,sans-serif;font-size:14px;color:var(--muted);letter-spacing:0;margin-top:2px}
+.game small{margin-top:6px}
+.tile small{display:block;font-size:12px;color:var(--muted);margin-top:2px;line-height:1.2}
+.tile.sel small,.tile.miss small{color:inherit}
+
+/* game screen */
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.link{background:none;border:none;color:var(--muted);text-decoration:underline;padding:6px 0}
+.bar{height:12px;border:2.5px solid var(--line);border-radius:999px;background:var(--surface);overflow:hidden;margin:14px 0 22px}
+.bar i{display:block;height:100%;background:var(--mint);width:0;transition:width .25s}
+.stage{padding:26px 20px;text-align:center}
+.ru{color:var(--muted);font-size:16px}
+.big{font-size:clamp(34px,9vw,56px);line-height:1.1;margin:8px 0;word-break:break-word}
+.ask{font-size:18px;margin-top:6px}
+.forms{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:14px}
+.form{padding:10px 16px;border-radius:12px;background:var(--soft);min-width:120px}
+.form small{display:block;color:var(--muted);font-size:13px}
+.form b{font-size:22px}
+.row{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:22px}
+.btn{padding:12px 20px;border:2.5px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:3px 3px 0 var(--line);font-weight:500}
+.btn.go{background:var(--sun);color:#1B2440}
+.btn.good{background:var(--mint);color:#fff}
+.btn.bad{background:var(--coral);color:#fff}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--line)}
+.speak{background:none;border:2px solid var(--muted);border-radius:999px;padding:4px 12px;color:var(--muted);font-size:14px;margin-top:6px}
+.inputs{display:grid;gap:12px;max-width:380px;margin:18px auto 0;text-align:left}
+.inputs label{font-size:14px;color:var(--muted)}
+.inputs input{width:100%;font:500 20px Rubik,sans-serif;padding:10px 12px;border:2.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
+.inputs input.right{border-color:var(--mint);background:color-mix(in srgb,var(--mint) 15%,var(--surface))}
+.inputs input.wrong{border-color:var(--coral);background:color-mix(in srgb,var(--coral) 15%,var(--surface))}
+.fix{font-size:15px;color:var(--coral);min-height:22px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+.choice{padding:16px 10px;border:2.5px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:3px 3px 0 var(--line);font:500 20px Rubik,sans-serif}
+.choice.right{background:var(--mint);color:#fff}
+.choice.wrong{background:var(--coral);color:#fff}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+@media (max-width:520px){.tiles{grid-template-columns:repeat(3,1fr)}.choices{grid-template-columns:1fr}}
+.tile{aspect-ratio:1.6;border:2.5px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:3px 3px 0 var(--line);font:500 17px Rubik,sans-serif;padding:4px;word-break:break-word}
+.tile.base{background:var(--soft)}
+.tile.sel{background:var(--sun);color:#1B2440}
+.tile.done{visibility:hidden}
+.tile.miss{background:var(--coral);color:#fff}
+.msg{min-height:26px;margin-top:12px;font-weight:500}
+.result{padding:26px 20px;text-align:center}
+.missed{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px}
+.missed span{padding:6px 12px;border-radius:10px;background:var(--soft)}
+/* reward game */
+.field{position:relative;height:min(68vh,540px);overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none;background:var(--soft)}
+.rpanel{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;z-index:5}
+.rpanel p{max-width:420px}
+.balloon{position:absolute;left:0;top:0;width:88px;height:104px;border-radius:50% 50% 46% 46%;border:2.5px solid var(--line);display:flex;align-items:center;justify-content:center;font:500 15px Rubik,sans-serif;color:#1B2440;padding:6px;text-align:center;line-height:1.15;cursor:pointer;will-change:transform}
+.balloon::after{content:"";position:absolute;bottom:-9px;left:50%;margin-left:-6px;border:6px solid transparent;border-top:8px solid var(--line)}
+.balloon.gold{background:#FFD23F;box-shadow:0 0 0 4px #fff3}
+.balloon.cloud{border-radius:40px;width:104px;height:62px;background:#9AA3BF;color:#fff}
+.balloon.cloud::after{display:none}
+.balloon.popped{transition:transform .18s,opacity .18s;opacity:0}
+.float{position:absolute;font-family:Bungee,Impact,sans-serif;font-size:22px;pointer-events:none;transition:transform .6s,opacity .6s;z-index:4}
+.hud{display:flex;gap:16px;font-family:Bungee,Impact,sans-serif;font-size:18px}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+
+<section id="setup">
+  <h1>Irregular verbs</h1>
+  <p class="sub">The irregular verbs you need for the OGE. Choose your verbs, then choose a game.</p>
+
+  <h2>Order</h2>
+  <div class="seg" id="order">
+    <button class="opt" data-v="freq" aria-pressed="true">Most common first</button>
+    <button class="opt" data-v="abc" aria-pressed="false">A to Z</button>
+  </div>
+
+  <h2>How many verbs</h2>
+  <div class="amount">
+    <input type="range" id="amount" min="5" max="82" value="15" aria-label="Number of verbs">
+    <span class="count" id="countOut">15</span>
+  </div>
+  <div class="seg" id="quick" style="margin-top:10px">
+    <button class="opt" data-n="10" aria-pressed="false">10</button>
+    <button class="opt" data-n="20" aria-pressed="false">20</button>
+    <button class="opt" data-n="40" aria-pressed="false">40</button>
+    <button class="opt" data-n="all" aria-pressed="false">All</button>
+  </div>
+  <details>
+    <summary>See the verbs you chose</summary>
+    <div class="chips" id="chips"></div>
+  </details>
+
+  <h2>Which forms</h2>
+  <div class="seg" id="forms">
+    <button class="opt" data-v="v2" aria-pressed="true">Past Simple</button>
+    <button class="opt" data-v="v23" aria-pressed="false">Past Simple + Past Participle</button>
+  </div>
+
+  <h2>Choose a game</h2>
+  <div class="games">
+    <button class="game" data-g="cards"><strong>Flashcards</strong><span>See the verb, say the forms, flip the card.</span></button>
+    <button class="game" data-g="type"><strong>Type it</strong><span>Write the forms yourself. Spelling counts.</span></button>
+    <button class="game" data-g="choose"><strong>Quick pick</strong><span>Choose the right form from four.</span></button>
+    <button class="game" data-g="match"><strong>Match pairs</strong><span>Find each verb and its Past Simple.</span></button>
+  </div>
+</section>
+
+<section id="play" hidden>
+  <div class="top">
+    <button class="link" id="quit">Back to menu</button>
+    <span id="score" aria-live="polite"></span>
+  </div>
+  <div class="bar" aria-hidden="true"><i id="progress"></i></div>
+  <div id="stage"></div>
+</section>
+
+<section id="done" hidden>
+  <div class="block result" id="resultBox"></div>
+</section>
+
+<section id="reward" hidden>
+  <div class="top">
+    <button class="link" id="rquit">Back to results</button>
+    <div class="hud" aria-live="polite"><span id="rscore">0</span><span id="rtime">30</span></div>
+  </div>
+  <div class="block field" id="field" style="margin-top:12px"></div>
+</section>
+
+</main>
+<script>
+const VERBS = [
+["be","was / were","been","быть"],["have","had","had","иметь"],["do","did","done","делать"],["say","said","said","сказать"],
+["go","went","gone","идти, ехать"],["get","got","got","получать"],["make","made","made","делать, создавать"],["know","knew","known","знать"],
+["think","thought","thought","думать"],["take","took","taken","брать"],["see","saw","seen","видеть"],["come","came","come","приходить"],
+["give","gave","given","давать"],["find","found","found","находить"],["tell","told","told","рассказывать"],["become","became","become","становиться"],
+["leave","left","left","уходить, оставлять"],["feel","felt","felt","чувствовать"],["put","put","put","класть"],["bring","brought","brought","приносить"],
+["begin","began","begun","начинать"],["keep","kept","kept","хранить, держать"],["hold","held","held","держать, проводить"],["write","wrote","written","писать"],
+["stand","stood","stood","стоять"],["hear","heard","heard","слышать"],["let","let","let","позволять"],["mean","meant","meant","значить"],
+["set","set","set","устанавливать"],["meet","met","met","встречать"],["run","ran","run","бегать"],["pay","paid","paid","платить"],
+["sit","sat","sat","сидеть"],["speak","spoke","spoken","говорить"],["lose","lost","lost","терять, проигрывать"],["grow","grew","grown","расти"],
+["understand","understood","understood","понимать"],["lead","led","led","вести"],["read","read","read","читать"],["spend","spent","spent","тратить, проводить"],
+["win","won","won","побеждать"],["build","built","built","строить"],["send","sent","sent","отправлять"],["fall","fell","fallen","падать"],
+["buy","bought","bought","покупать"],["cut","cut","cut","резать"],["sell","sold","sold","продавать"],["teach","taught","taught","учить (кого-то)"],
+["eat","ate","eaten","есть"],["drive","drove","driven","водить машину"],["break","broke","broken","ломать"],["catch","caught","caught","ловить"],
+["choose","chose","chosen","выбирать"],["draw","drew","drawn","рисовать"],["wear","wore","worn","носить (одежду)"],["fly","flew","flown","летать"],
+["forget","forgot","forgotten","забывать"],["throw","threw","thrown","бросать"],["sleep","slept","slept","спать"],["drink","drank","drunk","пить"],
+["sing","sang","sung","петь"],["swim","swam","swum","плавать"],["ride","rode","ridden","ездить верхом, на велосипеде"],["hide","hid","hidden","прятать"],
+["shut","shut","shut","закрывать"],["steal","stole","stolen","красть"],["lend","lent","lent","одалживать"],["feed","fed","fed","кормить"],
+["fight","fought","fought","драться, бороться"],["hit","hit","hit","ударять"],["hurt","hurt","hurt","ранить, болеть"],["show","showed","shown","показывать"],
+["learn","learnt / learned","learnt / learned","учить, узнавать"],["ring","rang","rung","звонить"],["wake","woke","woken","просыпаться"],["bite","bit","bitten","кусать"],
+["blow","blew","blown","дуть"],["dig","dug","dug","копать"],["forgive","forgave","forgiven","прощать"],["freeze","froze","frozen","замерзать"],
+["hang","hung","hung","вешать"],["shoot","shot","shot","стрелять"]
+].map(([b,v2,v3,ru],i)=>({b,v2,v3,ru,rank:i}));
+
+const $=s=>document.querySelector(s);
+const state={order:"freq",n:15,forms:"v2"};
+try{const s=JSON.parse(localStorage.getItem("ivSettings")||"null");if(s)Object.assign(state,s)}catch(e){}
+const save=()=>{try{localStorage.setItem("ivSettings",JSON.stringify(state))}catch(e){}};
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const variants=s=>s.split("/").map(x=>x.trim().toLowerCase());
+const ok=(typed,answer)=>{const t=typed.trim().toLowerCase().replace(/\s+/g," ");return t===answer.toLowerCase().replace(/\s+/g," ")||variants(answer).includes(t)};
+function say(text){try{const u=new SpeechSynthesisUtterance(text.replace(/\//g,",").replace(/\s+/g," "));u.lang="en-GB";u.rate=.85;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+
+function chosen(){
+  const list = state.order==="abc" ? VERBS.slice().sort((a,b)=>a.b.localeCompare(b.b)) : VERBS.slice();
+  return list.slice(0,Math.min(state.n,VERBS.length));
+}
+
+/* ---------- setup screen ---------- */
+function pressGroup(id,val,attr="v"){document.querySelectorAll(`#${id} .opt`).forEach(b=>b.setAttribute("aria-pressed",String(b.dataset[attr]===val)))}
+function renderSetup(){
+  pressGroup("order",state.order);pressGroup("forms",state.forms);
+  $("#amount").max=VERBS.length;$("#amount").value=state.n;$("#countOut").textContent=state.n>=VERBS.length?"All":state.n;
+  document.querySelectorAll("#quick .opt").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.n==="all"?state.n>=VERBS.length:+b.dataset.n===state.n)));
+  $("#chips").innerHTML=chosen().map(v=>`<span class="chip">${v.b} <em>– ${v.ru}</em></span>`).join("");
+}
+$("#order").onclick=e=>{const b=e.target.closest(".opt");if(!b)return;state.order=b.dataset.v;save();renderSetup()};
+$("#forms").onclick=e=>{const b=e.target.closest(".opt");if(!b)return;state.forms=b.dataset.v;save();renderSetup()};
+$("#amount").oninput=e=>{state.n=+e.target.value;save();renderSetup()};
+$("#quick").onclick=e=>{const b=e.target.closest(".opt");if(!b)return;state.n=b.dataset.n==="all"?VERBS.length:+b.dataset.n;save();renderSetup()};
+document.querySelector(".games").onclick=e=>{const g=e.target.closest(".game");if(g)start(g.dataset.g,chosen())};
+$("#quit").onclick=()=>show("setup");
+
+function show(id){["setup","play","done","reward"].forEach(s=>$("#"+s).hidden=s!==id);window.scrollTo(0,0)}
+
+/* ---------- game engine ---------- */
+let G=null;
+function start(game,verbs){
+  G={game,verbs:shuffle(verbs),i:0,right:0,total:0,missed:new Set(),pool:verbs};
+  show("play");
+  ({cards:cardsNext,type:typeNext,choose:chooseNext,match:matchStart})[game]();
+}
+function setProgress(done,total){$("#progress").style.width=(100*done/total)+"%";$("#score").textContent=`${G.right} right · ${G.missed.size} to practise`}
+function finish(){
+  const missed=[...G.missed];
+  const box=$("#resultBox");
+  const pct=G.total?Math.round(100*G.right/G.total):0;
+  box.innerHTML=`<h1>${pct>=90?"Excellent!":pct>=70?"Good work!":"Keep going!"}</h1>
+  <p class="sub">${G.right} out of ${G.total} right.</p>
+  ${missed.length?`<p style="margin-top:16px">Practise these again:</p><div class="missed">${missed.map(v=>`<span><b>${v.b}</b> – ${v.v2}${state.forms==="v23"?" – "+v.v3:""} <em>(${v.ru})</em></span>`).join("")}</div>`:`<p style="margin-top:16px">No mistakes. Try more verbs or a harder game.</p>`}
+  <div class="row">
+    ${missed.length?`<button class="btn go" id="again">Practise my mistakes</button>`:""}
+    <button class="btn go" id="bonus">🎈 Reward: Balloon pop</button>
+    <button class="btn" id="replay">Play again</button>
+    <button class="btn" id="menu">Back to menu</button>
+  </div>`;
+  show("done");
+  if(missed.length)$("#again").onclick=()=>start(G.game,missed);
+  $("#replay").onclick=()=>start(G.game,G.pool);
+  $("#menu").onclick=()=>{renderSetup();show("setup")};
+  $("#bonus").onclick=()=>rewardIntro(G.pool);
+}
+
+/* ---------- reward: Balloon pop ---------- */
+let R=null;
+const bestKey="ivBalloonBest";
+const getBest=()=>{try{return +localStorage.getItem(bestKey)||0}catch(e){return 0}};
+const setBest=v=>{try{localStorage.setItem(bestKey,String(v))}catch(e){}};
+function rewardIntro(pool){
+  stopReward();
+  show("reward");
+  $("#rscore").textContent="0";$("#rtime").textContent="30";
+  $("#field").innerHTML=`<div class="rpanel"><h1>Balloon pop</h1>
+    <p>You earned a break! Pop as many balloons as you can in 30 seconds.</p>
+    <p>Balloon: 1 point · Gold balloon: 3 points · Grey cloud: minus 2</p>
+    <p class="sub">Best score: ${getBest()}</p>
+    <div class="row"><button class="btn go" id="rgo">Start</button></div></div>`;
+  $("#rgo").onclick=()=>runReward(pool);$("#rgo").focus();
+}
+function runReward(pool){
+  const field=$("#field");field.innerHTML="";
+  const words=pool.map(v=>variants(v.v2)[0]);
+  const colors=["#FF8FA0","#7FD8BE","#9DB4FF","#FFB36B","#C9A7FF"];
+  R={score:0,end:performance.now()+30000,items:[],last:performance.now(),spawnIn:0,raf:0,field};
+  const W=()=>field.clientWidth, H=()=>field.clientHeight;
+  function spawn(){
+    const r=Math.random(), kind=r<.12?"gold":r<.27?"cloud":"plain";
+    const el=document.createElement("button");
+    el.className="balloon"+(kind==="plain"?"":" "+kind);
+    el.textContent=kind==="gold"?"★":kind==="cloud"?"☁":words[Math.floor(Math.random()*words.length)];
+    if(kind==="plain")el.style.background=colors[Math.floor(Math.random()*colors.length)];
+    el.setAttribute("aria-label",kind==="cloud"?"cloud":"balloon");
+    field.appendChild(el);
+    const w=el.offsetWidth;
+    const it={el,kind,x:Math.random()*(W()-w),y:H()+10,vy:70+Math.random()*70+(30000-(R.end-performance.now()))/300,sway:Math.random()*Math.PI*2,alive:true};
+    el.addEventListener("pointerdown",e=>{e.preventDefault();hit(it)});
+    el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();hit(it)}});
+    R.items.push(it);
+  }
+  function hit(it){
+    if(!it.alive||!R)return;it.alive=false;
+    const pts=it.kind==="gold"?3:it.kind==="cloud"?-2:1;
+    R.score=Math.max(0,R.score+pts);$("#rscore").textContent=R.score;
+    it.el.classList.add("popped");it.el.style.transform+=" scale(1.5)";
+    const f=document.createElement("div");f.className="float";f.textContent=(pts>0?"+":"")+pts;
+    f.style.color=pts>0?"var(--mint)":"var(--coral)";f.style.left=(it.x+30)+"px";f.style.top=it.y+"px";
+    field.appendChild(f);requestAnimationFrame(()=>{f.style.transform="translateY(-40px)";f.style.opacity="0"});
+    setTimeout(()=>{it.el.remove();f.remove()},600);
+  }
+  function frame(now){
+    if(!R)return;
+    const dt=Math.min(.05,(now-R.last)/1000);R.last=now;
+    const left=Math.max(0,Math.ceil((R.end-now)/1000));$("#rtime").textContent=left;
+    if(now>=R.end)return endReward();
+    R.spawnIn-=dt;
+    if(R.spawnIn<=0){spawn();R.spawnIn=Math.max(.28,.75-(30000-(R.end-now))/60000)}
+    R.items=R.items.filter(it=>{
+      if(!it.alive)return false;
+      it.y-=it.vy*dt;it.sway+=dt*2;
+      it.el.style.transform=`translate(${it.x+Math.sin(it.sway)*12}px,${it.y}px)`;
+      if(it.y<-130){it.el.remove();return false}
+      return true;
+    });
+    R.raf=requestAnimationFrame(frame);
+  }
+  R.raf=requestAnimationFrame(frame);
+}
+function stopReward(){if(R){cancelAnimationFrame(R.raf);R=null}}
+function endReward(){
+  const score=R.score;stopReward();
+  const best=Math.max(score,getBest());const isNew=score>0&&score>=best&&score>getBest()-0&&score===best;
+  setBest(best);
+  $("#rtime").textContent="0";
+  $("#field").innerHTML=`<div class="rpanel"><h1>${score} points</h1>
+    <p class="sub">${score===best&&score>0?"New best score!":"Best score: "+best}</p>
+    <div class="row"><button class="btn go" id="ragain">Play again</button><button class="btn" id="rback">Back to results</button></div></div>`;
+  $("#ragain").onclick=()=>runReward(G.pool);
+  $("#rback").onclick=()=>show("done");
+}
+$("#rquit").onclick=()=>{stopReward();show("done")};
+const formsLine=v=>`<div class="forms"><div class="form"><small>Past Simple</small><b>${v.v2}</b></div>${state.forms==="v23"?`<div class="form"><small>Past Participle</small><b>${v.v3}</b></div>`:""}</div>`;
+
+/* 1. Flashcards */
+function cardsNext(){
+  if(G.i>=G.verbs.length)return finish();
+  const v=G.verbs[G.i];setProgress(G.i,G.verbs.length);
+  $("#stage").innerHTML=`<div class="block stage">
+    <div class="ru">${v.ru}</div><div class="big">${v.b}</div>
+    <div class="ask">Say the ${state.forms==="v23"?"two forms":"Past Simple"} out loud, then flip.</div>
+    <div id="back" hidden>${formsLine(v)}<button class="speak" id="sp">🔊 Listen</button></div>
+    <div class="row" id="ctl"><button class="btn go" id="flip">Flip the card</button></div></div>`;
+  $("#flip").onclick=()=>{
+    $("#back").hidden=false;
+    $("#sp").onclick=()=>say(`${v.b}, ${v.v2}${state.forms==="v23"?", "+v.v3:""}`);
+    $("#ctl").innerHTML=`<button class="btn good" id="knew">I knew it</button><button class="btn bad" id="didnt">I didn’t know</button>`;
+    $("#knew").onclick=()=>{G.right++;G.total++;G.i++;cardsNext()};
+    $("#didnt").onclick=()=>{G.missed.add(v);G.total++;G.i++;cardsNext()};
+    $("#knew").focus();
+  };
+  $("#flip").focus();
+}
+
+/* 2. Type it */
+function typeNext(){
+  if(G.i>=G.verbs.length)return finish();
+  const v=G.verbs[G.i];setProgress(G.i,G.verbs.length);
+  const both=state.forms==="v23";
+  $("#stage").innerHTML=`<div class="block stage">
+    <div class="ru">${v.ru}</div><div class="big">${v.b}</div>
+    <div class="inputs">
+      <label for="a2">Past Simple</label><input id="a2" autocomplete="off" autocapitalize="off" spellcheck="false">
+      ${both?`<label for="a3">Past Participle</label><input id="a3" autocomplete="off" autocapitalize="off" spellcheck="false">`:""}
+      <div class="fix" id="fix" aria-live="polite"></div>
+    </div>
+    <div class="row" id="ctl"><button class="btn go" id="check">Check</button></div></div>`;
+  const a2=$("#a2"),a3=$("#a3");a2.focus();
+  const check=()=>{
+    const r2=ok(a2.value,v.v2), r3=both?ok(a3.value,v.v3):true;
+    a2.className=r2?"right":"wrong"; if(both)a3.className=r3?"right":"wrong";
+    G.total++;
+    if(r2&&r3){G.right++;$("#fix").textContent=""}
+    else{G.missed.add(v);$("#fix").textContent=`Correct: ${v.b} – ${v.v2}${both?" – "+v.v3:""}`}
+    $("#ctl").innerHTML=`<button class="btn go" id="next">Next verb</button><button class="btn" id="sp">🔊 Listen</button>`;
+    $("#sp").onclick=()=>say(`${v.b}, ${v.v2}${both?", "+v.v3:""}`);
+    $("#next").onclick=()=>{G.i++;typeNext()};$("#next").focus();
+  };
+  $("#check").onclick=check;
+  document.querySelectorAll(".inputs input").forEach((inp,idx,all)=>inp.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();if(idx<all.length-1&&!all[idx+1].value)all[idx+1].focus();else if($("#check"))check()}});
+}
+
+/* 3. Quick pick */
+function wrongForms(v,form){
+  const b=v.b, set=new Set();
+  const reg = b.endsWith("e")?b+"d": /[^aeiou]y$/.test(b)?b.slice(0,-1)+"ied": b+"ed";
+  set.add(reg);
+  const other=form==="v2"?v.v3:v.v2; if(!ok(other,v[form]))set.add(variants(other)[0]);
+  if(form==="v3"&&v.v2===v.v3)set.add(b+"en");
+  shuffle(VERBS.filter(x=>x!==v)).forEach(x=>{if(set.size<6)set.add(variants(x[form])[0])});
+  return shuffle([...set].filter(w=>!ok(w,v[form]))).slice(0,3);
+}
+function chooseNext(){
+  if(G.i>=G.verbs.length)return finish();
+  const v=G.verbs[G.i];setProgress(G.i,G.verbs.length);
+  const form=state.forms==="v23"&&Math.random()<.5?"v3":"v2";
+  const answer=variants(v[form])[0];
+  const opts=shuffle([answer,...wrongForms(v,form)]);
+  $("#stage").innerHTML=`<div class="block stage">
+    <div class="ru">${v.ru}</div><div class="big">${v.b}</div>
+    <div class="ask">Choose the <b>${form==="v2"?"Past Simple":"Past Participle"}</b></div>
+    <div class="choices">${opts.map(o=>`<button class="choice">${o}</button>`).join("")}</div>
+    <div class="msg" id="msg" aria-live="polite"></div></div>`;
+  let answered=false;
+  document.querySelectorAll(".choice").forEach(btn=>btn.onclick=()=>{
+    if(answered)return;answered=true;G.total++;
+    const right=ok(btn.textContent,v[form]);
+    if(right){G.right++;btn.classList.add("right");$("#msg").textContent="Right!"}
+    else{G.missed.add(v);btn.classList.add("wrong");document.querySelectorAll(".choice").forEach(c=>{if(ok(c.textContent,v[form]))c.classList.add("right")});$("#msg").textContent=`${v.b} – ${v.v2}${state.forms==="v23"?" – "+v.v3:""}`}
+    setProgress(G.i+1,G.verbs.length);
+    setTimeout(()=>{G.i++;chooseNext()},right?700:1800);
+  });
+}
+
+/* 4. Match pairs */
+function matchStart(){G.round=0;G.rounds=[];for(let i=0;i<G.verbs.length;i+=6)G.rounds.push(G.verbs.slice(i,i+6));matchRound()}
+function matchRound(){
+  if(G.round>=G.rounds.length)return finish();
+  const set=G.rounds[G.round];let left=set.length,pick=null,busy=false;
+  const tiles=shuffle(set.flatMap(v=>[{v,t:v.b,k:"base"},{v,t:variants(v.v2)[0],k:"past"}]));
+  setProgress(G.round,G.rounds.length);
+  $("#stage").innerHTML=`<div class="block stage">
+    <div class="ask">Round ${G.round+1} of ${G.rounds.length}. Match each verb with its Past Simple.</div>
+    <div class="tiles">${tiles.map((x,i)=>`<button class="tile ${x.k==="base"?"base":""}" data-i="${i}">${x.t}${x.k==="base"?`<small>${x.v.ru}</small>`:""}</button>`).join("")}</div>
+    <div class="msg" id="msg" aria-live="polite"></div></div>`;
+  const tried=new Set();
+  document.querySelectorAll(".tile").forEach(el=>el.onclick=()=>{
+    if(busy||el.classList.contains("done"))return;
+    const x=tiles[+el.dataset.i];
+    if(!pick){pick={el,x};el.classList.add("sel");return}
+    if(pick.el===el){el.classList.remove("sel");pick=null;return}
+    const a=pick,b={el,x};pick=null;
+    if(a.x.v===b.x.v&&a.x.k!==b.x.k){
+      if(!tried.has(a.x.v)){G.right++}G.total++;
+      a.el.classList.add("done");b.el.classList.add("done");left--;
+      $("#msg").textContent=`${a.x.v.b} – ${a.x.v.v2}`;
+      if(left===0){busy=true;setTimeout(()=>{G.round++;matchRound()},700)}
+    }else{
+      busy=true;[a,b].forEach(t=>{tried.add(t.x.v);G.missed.add(t.x.v)});
+      a.el.classList.remove("sel");a.el.classList.add("miss");b.el.classList.add("miss");
+      $("#msg").textContent="Not a pair. Try again.";
+      setTimeout(()=>{a.el.classList.remove("miss");b.el.classList.remove("miss");busy=false},800);
+    }
+    $("#score").textContent=`${G.right} right · ${G.missed.size} to practise`;
+  });
+}
+
+renderSetup();
+</script>
+</body>
+</html>

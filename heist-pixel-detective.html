@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Heist: Pixel Detective</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#C9C4E4; --cab:#2A2550; --panel:#F7F4FF; --ink:#1B1838; --soft:#5B5682;
+  --gold:#E3A81B; --pink:#E0367F; --line:#1B1838; --shadow:#8F88BD;
+  --past:#C8322A; --usual:#3E8A33; --now:#D26A10; --fut:#6A47C9;
+  --btn:#FFFFFF; --btnhover:#FFF2C9; --hl:#FFE27A;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121029; --cab:#2A2550; --panel:#1F1B40; --ink:#F3EEDC; --soft:#A9A3D6;
+    --gold:#F2C14E; --pink:#FF4FA3; --line:#F3EEDC; --shadow:#0A0919;
+    --past:#FF5A4E; --usual:#6BD25A; --now:#FF9A3C; --fut:#A98BFF;
+    --btn:#2A2552; --btnhover:#3A3470; --hl:#5A4A10;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121029; --cab:#2A2550; --panel:#1F1B40; --ink:#F3EEDC; --soft:#A9A3D6;
+  --gold:#F2C14E; --pink:#FF4FA3; --line:#F3EEDC; --shadow:#0A0919;
+  --past:#FF5A4E; --usual:#6BD25A; --now:#FF9A3C; --fut:#A98BFF;
+  --btn:#2A2552; --btnhover:#3A3470; --hl:#5A4A10;
+  color-scheme: dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"VT323",ui-monospace,monospace;
+  min-height:100%;display:flex;justify-content:center}
+.app{width:100%;max-width:760px;padding:12px}
+.hud{display:flex;align-items:center;gap:12px;background:var(--cab);color:#F3EEDC;
+  padding:10px 12px;border:3px solid #0E0C22;font-family:"Press Start 2P",monospace;font-size:10px}
+.hud .grow{flex:1}
+.hearts{display:flex;gap:3px}
+.hearts svg{width:16px;height:14px;image-rendering:pixelated}
+.score{color:#F2C14E;min-width:7ch;text-align:right}
+.combo{color:#FF4FA3;min-width:6ch}
+.mute{font:inherit;color:#F3EEDC;background:transparent;border:2px solid #6E67A8;padding:5px 7px;cursor:pointer}
+.mute:focus-visible,.btn:focus-visible,.opt:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.stage{position:relative}
+.screen{background:#0E0C22;border:3px solid #0E0C22;border-top:0;line-height:0}
+canvas{width:100%;height:auto;aspect-ratio:16/9;image-rendering:pixelated;image-rendering:crisp-edges;display:block}
+.panel{background:var(--panel);border:3px solid var(--line);box-shadow:5px 5px 0 var(--shadow);
+  margin-top:10px;padding:14px 16px 16px}
+.qhead{display:flex;align-items:center;gap:10px;font-family:"Press Start 2P",monospace;font-size:9px;color:var(--soft)}
+.timer{flex:1;height:10px;border:2px solid var(--line);background:transparent;position:relative}
+.timer i{position:absolute;inset:0;width:100%;background:var(--gold);transition:width .1s linear}
+.timer.low i{background:var(--pink)}
+.sentence{font-size:clamp(26px,5.2vw,34px);line-height:1.15;margin:12px 0 14px;min-height:2.3em}
+.blank{display:inline-block;min-width:3.2em;border-bottom:3px solid var(--ink);text-align:center}
+.tw{background:var(--hl);padding:0 .15em}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt{font-family:"VT323",monospace;font-size:clamp(22px,4.4vw,28px);text-align:left;color:var(--ink);
+  background:var(--btn);border:3px solid var(--line);box-shadow:4px 4px 0 var(--shadow);
+  padding:8px 10px;cursor:pointer;display:flex;gap:10px;align-items:center;min-height:52px}
+.opt:hover{background:var(--btnhover)}
+.opt:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--shadow)}
+.opt kbd{font-family:"Press Start 2P",monospace;font-size:9px;border:2px solid var(--line);padding:3px 4px;color:var(--soft)}
+.opt.right{background:var(--usual);color:#fff;border-color:var(--usual)}
+.opt.right kbd,.opt.wrong kbd{color:#fff;border-color:#fff}
+.opt.wrong{background:var(--past);color:#fff;border-color:var(--past)}
+.opt[disabled]{cursor:default}
+.fb{margin-top:12px;min-height:30px;font-size:24px;line-height:1.2}
+.fb .tag{font-family:"Press Start 2P",monospace;font-size:9px;color:#fff;padding:4px 6px;margin-right:6px;vertical-align:3px}
+.fb .rule{color:var(--soft)}
+.ans{padding:0 .15em;color:#fff}
+.btn{font-family:"Press Start 2P",monospace;font-size:11px;color:#1B1838;background:#F2C14E;border:3px solid #0E0C22;
+  box-shadow:4px 4px 0 #0E0C22;padding:12px 16px;cursor:pointer}
+.btn:active{transform:translate(2px,2px);box-shadow:2px 2px 0 #0E0C22}
+.btn.ghost{background:transparent;color:#F3EEDC;border-color:#6E67A8;box-shadow:none}
+.overlay{position:absolute;inset:0;background:rgba(14,12,34,.94);color:#F3EEDC;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:18px;overflow:auto;z-index:5}
+.overlay[hidden]{display:none}
+.logo{font-family:"Press Start 2P",monospace;font-size:clamp(26px,7vw,46px);color:#F2C14E;
+  text-shadow:4px 4px 0 #A8201A, 8px 8px 0 #0A0919;margin:4px 0 10px;letter-spacing:2px}
+.subtitle{font-family:"Press Start 2P",monospace;font-size:11px;color:#FF4FA3;margin-bottom:18px}
+.star{font-size:24px;color:#F3EEDC;margin:0 0 4px}
+.how{font-size:22px;line-height:1.25;max-width:34em;color:#CFC9F2;margin:10px 0 16px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0 16px}
+.chip{font-family:"Press Start 2P",monospace;font-size:8px;color:#fff;padding:6px 8px}
+.c-past{background:#C8322A}.c-usual{background:#3E8A33}.c-now{background:#D26A10}.c-fut{background:#6A47C9}.c-aux{background:#55524C}
+.big{font-family:"Press Start 2P",monospace;font-size:clamp(18px,4.5vw,28px);color:#F2C14E;margin:6px 0}
+.place{font-family:"Press Start 2P",monospace;font-size:9px;color:#A9A3D6;margin-bottom:8px}
+.quote{font-size:24px;max-width:28em;margin:10px 0 18px;color:#F3EEDC}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.stats{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;align-items:center;width:min(420px,100%);margin:8px 0 14px;font-size:20px;text-align:left}
+.bar{height:12px;border:2px solid #6E67A8}.bar i{display:block;height:100%}
+.notes{width:min(560px,100%);text-align:left;font-size:20px;line-height:1.2;margin:4px 0 16px;color:#CFC9F2}
+.notes li{margin:4px 0}
+.notes b{color:#F2C14E;font-weight:normal}
+.sprite{image-rendering:pixelated;width:96px;height:auto;margin:6px 0}
+.best{font-family:"Press Start 2P",monospace;font-size:9px;color:#A9A3D6;margin-top:14px}
+@media (max-width:460px){
+  .opts{grid-template-columns:1fr}
+  .hud{font-size:8px;gap:8px}
+}
+@media (prefers-reduced-motion: reduce){.opt:active,.btn:active{transform:none}}
+</style>
+</head>
+<body>
+<main class="app">
+  <div class="hud" aria-live="polite">
+    <div class="hearts" id="hearts" aria-label="Lives"></div>
+    <div class="grow" id="lvl">CASE 0/4</div>
+    <div class="combo" id="combo"></div>
+    <div class="score" id="score">0</div>
+    <button class="mute" id="mute" aria-label="Sound on or off">♪ ON</button>
+  </div>
+  <div class="stage">
+    <div class="screen"><canvas id="cv" width="320" height="180"></canvas></div>
+    <section class="panel" id="panel">
+      <div class="qhead"><span id="qnum">CLUE 1</span><div class="timer" id="timer"><i id="tbar"></i></div></div>
+      <p class="sentence" id="sentence">Get ready, Detective…</p>
+      <div class="opts" id="opts"></div>
+      <div class="fb" id="fb"></div>
+    </section>
+    <div class="overlay" id="ov"></div>
+  </div>
+</main>
+<script>
+(() => {
+/* ===================== DATA ===================== */
+const V = { // base: [past, he-form, ing]
+  drive:['drove','drives','driving'], fall:['fell','falls','falling'], get:['got','gets','getting'],
+  make:['made','makes','making'], play:['played','plays','playing'], celebrate:['celebrated','celebrates','celebrating'],
+  go:['went','goes','going'], order:['ordered','orders','ordering'], run:['ran','runs','running'],
+  watch:['watched','watches','watching'], pack:['packed','packs','packing'], drink:['drank','drinks','drinking'],
+  fly:['flew','flies','flying'], take:['took','takes','taking'], find:['found','finds','finding'],
+  pay:['paid','pays','paying'], listen:['listened','listens','listening'], eat:['ate','eats','eating'],
+  study:['studied','studies','studying'], travel:['traveled','travels','traveling'], stay:['stayed','stays','staying'],
+  wake:['woke','wakes','waking'], sleep:['slept','sleeps','sleeping'], turn:['turned','turns','turning'],
+  have:['had','has','having'], smile:['smiled','smiles','smiling'], speak:['spoke','speaks','speaking'],
+  climb:['climbed','climbs','climbing'], cross:['crossed','crosses','crossing'], yawn:['yawned','yawns','yawning'],
+  rob:['robbed','robs','robbing'], buy:['bought','buys','buying'], catch:['caught','catches','catching'],
+  visit:['visited','visits','visiting'], call:['called','calls','calling'], arrest:['arrested','arrests','arresting'],
+  hide:['hid','hides','hiding'], open:['opened','opens','opening']
+};
+// [tense, subject, verb, sentence, time word]
+const Q = [
+ ['past','they','drive','Last Friday night, the gang ___ to the City Museum.','Last Friday night'],
+ ['past','he','fall','Yesterday Joe ___ asleep in the car.','Yesterday'],
+ ['past','he','get','Last night Tony ___ stuck in the window.','Last night'],
+ ['past','she','make','Two days ago Mia ___ the plan.','Two days ago'],
+ ['past','I','play','Last night I ___ CS2 with my friends.','Last night'],
+ ['past','I','celebrate','In October I ___ my birthday.','In October'],
+ ['past','it','go','An hour ago the alarm ___ off.','An hour ago'],
+ ['past','he','order','Yesterday Tony ___ a pizza to the museum.','Yesterday'],
+ ['past','we','go','Last weekend we ___ to the sauna.','Last weekend'],
+ ['past','they','run','Last Friday they ___ away from the police.','Last Friday'],
+ ['past','I','watch','Two days ago I ___ a new series about bad guys.','Two days ago'],
+ ['past','she','pack','Yesterday Mia ___ her suitcase.','Yesterday'],
+ ['past','he','drink','Last night Joe ___ ten energy drinks.','Last night'],
+ ['past','I','fly','Last year I ___ to a new country.','Last year'],
+ ['past','he','take','Last Friday Tony ___ a fake diamond.','Last Friday'],
+ ['past','he','find','Yesterday the detective ___ the pizza box.','Yesterday'],
+ ['usual','he','get','Tony usually ___ up at noon.','usually'],
+ ['usual','she','play','Mia ___ chess every day.','every day'],
+ ['usual','he','sleep','Joe never ___ at night.','never'],
+ ['usual','I','play','I ___ CS2 almost every day.','almost every day'],
+ ['usual','he','pay','Tony never ___ the bills.','never'],
+ ['usual','she','make','Mia always ___ the plans.','always'],
+ ['usual','he','drive','Joe ___ the car every Friday.','every Friday'],
+ ['usual','I','listen','I usually ___ to rap music in the car.','usually'],
+ ['usual','he','eat','Tony ___ pizza every day.','every day'],
+ ['usual','we','study','We ___ English twice a week.','twice a week'],
+ ['usual','he','drink','Joe always ___ energy drinks.','always'],
+ ['usual','she','study','Mia ___ maps every night.','every night'],
+ ['usual','I','travel','I often ___ to new countries.','often'],
+ ['usual','he','stay','On Mondays Tony ___ in bed all day.','On Mondays'],
+ ['usual','they','find','Good detectives always ___ the truth.','always'],
+ ['usual','I','wake','I never ___ up at 6 a.m.','never'],
+ ['now','he','sleep','Look! Joe ___ in the police car.','Look!'],
+ ['now','he','eat','RN Tony ___ pizza again.','RN'],
+ ['now','she','pack','At the moment Mia ___ her suitcase.','At the moment'],
+ ['now','I','have','RN I ___ an English lesson.','RN'],
+ ['now','they','run','Look! The gang ___ to the airport.','Look!'],
+ ['now','he','listen','Shh! The detective ___ to the phone call.','Shh!'],
+ ['now','he','play','RN Joe ___ CS2 in the police room.','RN'],
+ ['now','he','smile','Look! Tony ___ at the camera.','Look!'],
+ ['now','we','speak','At the moment we ___ English.','At the moment'],
+ ['now','she','study','Now Mia ___ the map with a magnifying glass.','Now'],
+ ['now','I','play','RN I ___ a detective game.','RN'],
+ ['now','he','climb','Wait! Tony ___ through the window again.','Wait!'],
+ ['now','she','cross','Look! Mia ___ her arms.','Look!'],
+ ['now','he','yawn','RN Joe ___ again.','RN'],
+ ['now','he','hide','Listen! Somebody ___ in the gift shop.','Listen!'],
+ ['now','she','open','Look! Mia ___ the secret door.','Look!'],
+ ['fut','they','fly','On Sunday they ___ to Las Vegas.','On Sunday'],
+ ['fut','she','rob','Next week Mia ___ a casino.','Next week'],
+ ['fut','they','buy','Tomorrow the gang ___ a yacht.','Tomorrow'],
+ ['fut','I','go','This weekend I ___ to the sauna.','This weekend'],
+ ['fut','he','catch','Tomorrow the detective ___ the gang.','Tomorrow'],
+ ['fut','I','visit','Next month I ___ a new country.','Next month'],
+ ['fut','I','watch','Next Friday I ___ a series about bad guys.','Next Friday'],
+ ['fut','we','travel','Next year we ___ to Dubai.','Next year'],
+ ['fut','I','call','Tomorrow morning I ___ the police.','Tomorrow morning'],
+ ['fut','she','make','On Saturday Mia ___ a new plan.','On Saturday'],
+ ['fut','he','buy','Next week Joe ___ a faster car.','Next week'],
+ ['fut','we','order','This evening we ___ pizza for the team.','This evening'],
+ ['fut','they','arrest','Soon the police ___ the gang.','Soon'],
+ ['fut','he','pay','Next Sunday Tony ___ his bills. Maybe!','Next Sunday'],
+ ['fut','he','sleep','Tonight Joe ___ in jail. Poor Joe!','Tonight'],
+ ['fut','I','play','Next weekend I ___ CS2 with my team.','Next weekend'],
+];
+// question words: [tense, sentence, options, correct, time word]
+const AUX = [
+ ['past','___ you play CS2 last night?',['Did','Do','Are','Were'],'Did','last night'],
+ ['usual','___ you usually drink coffee?',['Do','Did','Are','Is'],'Do','usually'],
+ ['now','___ you watching a series RN?',['Are','Do','Did','Is'],'Are','RN'],
+ ['fut','___ you going to travel next month?',['Are','Do','Did','Is'],'Are','next month'],
+ ['past','Where ___ you last Friday night?',['were','are','did','do'],'were','last Friday night'],
+ ['usual','___ Tony eat pizza every day?',['Does','Do','Did','Is'],'Does','every day'],
+ ['past','___ Joe fall asleep last Friday?',['Did','Does','Was','Is'],'Did','last Friday'],
+ ['now','What ___ Mia doing RN?',['is','does','did','are'],'is','RN'],
+ ['fut','___ they going to fly on Sunday?',['Are','Do','Did','Is'],'Are','on Sunday'],
+ ['past','What ___ you do yesterday?',['did','do','are','were'],'did','yesterday'],
+ ['usual','Where ___ Mia usually study maps?',['does','do','did','is'],'does','usually'],
+ ['now','Why ___ Tony smiling RN?',['is','does','did','are'],'is','RN'],
+];
+const LABEL = {past:'LAST FRIDAY', usual:'USUALLY', now:'RN', fut:'NEXT WEEK'};
+const RULE = {
+  past:'Past: verb + ed, or the 2nd form (drove, took, went).',
+  usual:'Usually: verb, or verb + s for he / she (plays, eats).',
+  now:'RN: am / is / are + verb-ing.',
+  fut:'The plan: am / is / are + going to + verb.'
+};
+const BE = {I:'am', he:'is', she:'is', it:'is', we:'are', they:'are', you:'are'};
+function forms(q){
+  const [t,su,v] = q; const f = V[v]; const be = BE[su];
+  const third = (su==='he'||su==='she'||su==='it');
+  const o = {past:f[0], usual: third?f[1]:v, now:be+' '+f[2], fut:be+' going to '+v};
+  if (t==='fut') o.now = 'going to '+v;     // common mistake, no "be"
+  return o;
+}
+const LEVELS = [
+  {id:'joe', name:'LITTLE JOE', place:'DOWNTOWN · 11:58 PM', text:'Little Joe is running to the car. Catch him!',
+   tenses:['past','usual'], gap:5, time:16, sus:['joe'], theme:'city',
+   quip:'“I usually sleep in the car. RN I’m sleeping in jail. Great.”'},
+  {id:'mia', name:'MIA “THE BRAIN”', place:'CITY MUSEUM STEPS', text:'Mia has the plan. Don’t let her escape!',
+   tenses:['past','usual','now'], gap:5, time:14, sus:['mia'], theme:'museum',
+   quip:'“I made a perfect plan! Who ate the pizza?! TONY!”'},
+  {id:'tony', name:'BIG TONY', place:'PIZZA STREET', text:'Big Tony is slow… but he has the diamond!',
+   tenses:['past','usual','now','fut'], gap:6, time:13, sus:['tony'], theme:'pizza',
+   quip:'“OK, OK! I took the diamond. It’s a $4.99 souvenir. Can I have a pizza now?”'},
+  {id:'boss', name:'THE WHOLE GANG', place:'LAS VEGAS AIRPORT', text:'They’re going to fly away. Last chance, Detective Evgeniy!',
+   tenses:['past','usual','now','fut','aux'], gap:7, time:10, sus:['tony','mia','joe'], theme:'vegas',
+   quip:'“We aren’t going to buy a yacht. We’re going to wash dishes in jail.”'},
+];
+
+/* ===================== STORAGE ===================== */
+function load(k, d){ try{ const v = localStorage.getItem(k); return v===null? d : JSON.parse(v);}catch(e){ return d; } }
+function save(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+/* ===================== AUDIO ===================== */
+let AC = null, muted = load('heist-muted', false), musicTimer = null, musicStep = 0, musicFast = false;
+function ac(){ if(!AC){ try{ AC = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return AC; }
+function tone(freq, dur, type='square', vol=0.06, when=0){
+  if (muted) return; const a = ac(); if(!a) return;
+  const t = a.currentTime + when; const o = a.createOscillator(); const g = a.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + dur + 0.02);
+}
+const sfx = {
+  ok(){ tone(660,.08); tone(990,.12,'square',.06,.07); },
+  bad(){ tone(140,.25,'sawtooth',.07); tone(110,.3,'sawtooth',.06,.12); },
+  tick(){ tone(1200,.03,'square',.03); },
+  combo(){ [784,988,1175].forEach((f,i)=>tone(f,.07,'square',.05,i*.05)); },
+  caught(){ [523,659,784,1047,784,1047].forEach((f,i)=>tone(f,.12,'square',.06,i*.1)); },
+  over(){ [392,330,262,196].forEach((f,i)=>tone(f,.2,'triangle',.08,i*.16)); },
+  start(){ [262,392,523].forEach((f,i)=>tone(f,.1,'square',.05,i*.08)); }
+};
+const N = f => 440*Math.pow(2,(f-69)/12);
+const BASS = [45,45,52,45, 48,48,55,48, 43,43,50,43, 44,44,52,44];
+const LEAD = [69,0,72,0, 76,74,72,0, 67,0,71,0, 74,72,71,0, 69,0,72,76, 81,0,79,76, 74,0,72,71, 68,71,74,0];
+function musicTick(){
+  if (muted) return;
+  const s = musicStep++;
+  if (s % 2 === 0) tone(N(BASS[(s/2|0) % 16]), .16, 'triangle', .07);
+  const l = LEAD[s % 32]; if (l) tone(N(l), .1, 'square', .025);
+}
+function startMusic(fast){
+  stopMusic(); musicFast = fast; musicTimer = setInterval(musicTick, fast? 115 : 150);
+}
+function stopMusic(){ if (musicTimer) clearInterval(musicTimer); musicTimer = null; }
+
+/* ===================== PIXEL SPRITES ===================== */
+const PAL = {
+  k:'#111018', w:'#F4F4F4', s:'#F2B98B', S:'#D9946A', h:'#5A3A22', b:'#2A1A10', c:'#C99A5B', C:'#9A7240',
+  p:'#2C2B3A', o:'#FF7A1A', O:'#C9530A', g:'#8A8A96', G:'#5E5E69', v:'#9B5BE6', V:'#6A34A8',
+  n:'#3E8A3A', N:'#2C5A29', x:'#22222B', X:'#454556', r:'#D42A2A', m:'#1A1210', d:'#FF4FA3', D:'#FFC2E0', y:'#F2C14E'
+};
+const LEGS = {
+  A:['...PP.PP....','..PP...PP...','.PP.....PP..','.KK.....KK..'],
+  B:['....PP......','....PPP.....','....P.PP....','...KK.KK....'],
+  S:['...PP.PP....','...PP.PP....','...PP.PP....','..KKK.KKK...']
+};
+const SPR = {
+  det:{P:'p',K:'k',top:[
+    '....hhhh....','...hhhhhh...','..bbbbbbbb..','....ssss....','...ssssk....','....sss.....',
+    '...cccccc...','..ccCccccss.','..ccCccc....','..cccccc....','..cccccc....','...cCCc.....']},
+  joe:{P:'x',K:'w',top:[
+    '..o.o.oo....','.oooooooo...','.oOooooooo..','..ossssso...','...ssssk....','...SsssS....',
+    '..kggggk....','.gggggggg...','.ggGggggss..','.ggGgggg....','.gggggggg...','..gGGGgg....']},
+  mia:{P:'x',K:'k',top:[
+    '...vvvvv....','..vvvvvvv...','.vvVvvvvvv..','.vvssssssv..','.vvskkskkv..','.vvssssssv..',
+    '...nnnnn....','..nnnnnnn...','..nNnnnnnss.','..nNnnnn....','..nnnnnn....','...xxxx.....']},
+  tony:{P:'x',K:'k',off:1,top:[
+    '....ssssss....','...ssssssss...','...sssssskss..','...ssmmmmmss..','....ssssss....','..xxxwrwxxx...',
+    '.xxxXwrwXxxx..','xxXxwwrwwxXxsd','xxXxwwwwwxXx..','xxXxwwwwwxXx..','.xxXxwwwxXxx..','..xxxxxxxxx...']}
+};
+function drawSpr(ctx, name, x, y, legs, sc){
+  const s = SPR[name]; const rows = s.top.concat(LEGS[legs]); const off = s.off||0;
+  for (let r=0; r<rows.length; r++){
+    const row = rows[r];
+    for (let ci=0; ci<row.length; ci++){
+      let ch = row[ci]; if (ch==='.') continue;
+      if (ch==='P') ch = s.P; else if (ch==='K') ch = s.K;
+      ctx.fillStyle = PAL[ch];
+      ctx.fillRect(Math.round(x+(ci+(r>=12?off:0))*sc), Math.round(y+r*sc), sc, sc);
+    }
+  }
+}
+function spriteURL(name){
+  const c = document.createElement('canvas'); c.width = 16*6; c.height = 16*6;
+  const x = c.getContext('2d'); drawSpr(x, name, 6, 0, 'S', 6); return c.toDataURL();
+}
+
+/* ===================== CANVAS SCENE ===================== */
+const cv = document.getElementById('cv'); const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
+const W = 320, H = 180, GROUND = 150;
+let seed = 7; const rnd = () => (seed = (seed*16807) % 2147483647) / 2147483647;
+const far = [], near = [], stars = [];
+for (let x=0; x<720;){ const w = 18+rnd()*30|0; far.push({x, w, h:40+rnd()*60|0}); x += w + 2; }
+for (let x=0; x<720;){ const w = 26+rnd()*34|0; const b = {x, w, h:30+rnd()*50|0, win:[]};
+  for (let wy=6; wy<b.h-6; wy+=7) for (let wx=4; wx<w-4; wx+=6) b.win.push([wx, wy, rnd()<0.45]);
+  near.push(b); x += w + 6; }
+for (let i=0;i<60;i++) stars.push([rnd()*W|0, rnd()*90|0, rnd()]);
+const THEMES = {
+  city:  {sky:['#141235','#1B1842','#231E52','#2C2560'], far:'#221E46', near:'#2E2858', win:'#F2C14E', road:'#26223F', neon:null},
+  museum:{sky:['#101A33','#14223F','#1A2B4D','#21355C'], far:'#1A2442', near:'#2A3556', win:'#CFE3FF', road:'#222A40', neon:null},
+  pizza: {sky:['#25102A','#331537','#421C42','#52244C'], far:'#2B1531', near:'#3B1E40', win:'#FF9A3C', road:'#2A1E33', neon:'#FF5A4E'},
+  vegas: {sky:['#2A0E45','#3E1260','#59197A','#7A2290'], far:'#2A1048', near:'#341458', win:'#FFE27A', road:'#24173A', neon:'#FF4FA3'}
+};
+let theme = THEMES.city, scroll = 0, speed = 1.2, boost = 0, shake = 0, flash = 0, frame = 0;
+let gap = 6, gapAnim = 6, sus = ['joe','mia','tony'], caughtT = 0, parts = [];
+function moon(cx, cy, r){
+  ctx.fillStyle = '#F3EEDC';
+  for (let y=-r; y<=r; y++) for (let x=-r; x<=r; x++) if (x*x+y*y <= r*r) ctx.fillRect(cx+x, cy+y, 1, 1);
+  ctx.fillStyle = 'rgba(0,0,0,.12)'; ctx.fillRect(cx-2, cy-3, 3, 2); ctx.fillRect(cx+3, cy+2, 2, 2);
+}
+function scene(){
+  frame++;
+  const sp = speed + (boost>0 ? 3 : 0);
+  if (caughtT===0) scroll += sp;
+  if (boost>0) boost--;
+  gapAnim += (gap - gapAnim) * 0.08;
+  const sx = shake>0 ? ((frame%2)?2:-2) : 0; if (shake>0) shake--;
+  ctx.save(); ctx.translate(sx, 0);
+  // sky bands
+  theme.sky.forEach((c,i)=>{ ctx.fillStyle = c; ctx.fillRect(-4, i*30, W+8, 30); });
+  ctx.fillStyle = theme.sky[3]; ctx.fillRect(-4, 120, W+8, 40);
+  stars.forEach(([x,y,t])=>{ if ((frame/20 + t*10|0)%5){ ctx.fillStyle='#D9D3FF'; ctx.fillRect(x,y,1,1);} });
+  moon(262, 28, 11);
+  // far buildings
+  ctx.fillStyle = theme.far;
+  far.forEach(b=>{ let x = ((b.x - scroll*0.25) % 720 + 720) % 720 - 40; ctx.fillRect(x, GROUND-b.h-10, b.w, b.h+10); });
+  // near buildings
+  near.forEach(b=>{
+    let x = ((b.x - scroll*0.55) % 720 + 720) % 720 - 60;
+    if (x > W+10 || x+b.w < -10) return;
+    ctx.fillStyle = theme.near; ctx.fillRect(x, GROUND-b.h, b.w, b.h);
+    b.win.forEach(([wx,wy,on])=>{ ctx.fillStyle = on ? theme.win : 'rgba(0,0,0,.25)'; ctx.fillRect(x+wx, GROUND-b.h+wy, 3, 4); });
+    if (theme.neon && b.w>40){ ctx.strokeStyle = theme.neon; ctx.lineWidth = 1; ctx.strokeRect(x+5.5, GROUND-b.h+3.5, b.w-11, 6); }
+  });
+  // lamps / palms
+  for (let i=0;i<6;i++){
+    let x = ((i*80 - scroll) % 480 + 480) % 480 - 40;
+    if (theme===THEMES.vegas){
+      ctx.fillStyle = '#1A0A2A'; ctx.fillRect(x, GROUND-38, 3, 38);
+      ctx.fillStyle = '#2E7A4A'; ctx.fillRect(x-8, GROUND-40, 19, 3); ctx.fillRect(x-5, GROUND-43, 13, 3);
+    } else {
+      ctx.fillStyle = '#0F0D22'; ctx.fillRect(x, GROUND-34, 2, 34); ctx.fillRect(x, GROUND-34, 8, 2);
+      ctx.fillStyle = '#FFE27A'; ctx.fillRect(x+6, GROUND-32, 3, 2);
+      ctx.fillStyle = 'rgba(255,226,122,.08)'; ctx.fillRect(x-4, GROUND-30, 20, 30);
+    }
+  }
+  // road
+  ctx.fillStyle = theme.road; ctx.fillRect(-4, GROUND, W+8, H-GROUND);
+  ctx.fillStyle = 'rgba(255,255,255,.08)'; ctx.fillRect(-4, GROUND, W+8, 2);
+  ctx.fillStyle = '#F2C14E';
+  for (let i=0;i<12;i++){ let x = ((i*32 - scroll*1.2) % 384 + 384) % 384 - 32; ctx.fillRect(x, 166, 14, 2); }
+  // speed lines
+  if (boost>0){ ctx.fillStyle = 'rgba(255,255,255,.35)';
+    for (let i=0;i<6;i++){ ctx.fillRect((frame*7 + i*57) % W, 70 + i*12, 22, 1); } }
+  // characters
+  const legs = caughtT>0 ? 'S' : ((frame>>3)%2 ? 'A' : 'B');
+  const bob = (caughtT===0 && (frame>>3)%2) ? -1 : 0;
+  const detX = 22 + (boost>0 ? 4 : 0);
+  const SP = sus.length>1 ? 30 : 0, STEP = sus.length>1 ? 17 : 22;
+  const sx0 = detX + 38 + gapAnim*STEP;
+  sus.forEach((n,i)=>{ drawSpr(ctx, n, sx0 + i*SP, GROUND-48+bob, legs, 3); });
+  if (sus.includes('tony') && caughtT===0 && frame%30<15){ ctx.fillStyle='#FFFFFF'; const ti = sus.indexOf('tony'); ctx.fillRect(sx0+ti*SP+43, GROUND-28, 2, 2); }
+  drawSpr(ctx, 'det', detX, GROUND-48-bob, caughtT>0 ? 'S' : legs, 3);
+  // caught: bars + text
+  if (caughtT>0){
+    caughtT++;
+    const bw = (sus.length-1)*SP + 48;
+    ctx.fillStyle = 'rgba(14,12,34,.45)'; ctx.fillRect(sx0-6, GROUND-56, bw, 58);
+    ctx.fillStyle = '#B9B4D8'; for (let x=0;x<=bw;x+=9) ctx.fillRect(sx0-6+x, GROUND-56, 2, 58);
+    ctx.fillRect(sx0-6, GROUND-56, bw+2, 3);
+    ctx.font = '12px "Press Start 2P"'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#A8201A'; ctx.fillText('CAUGHT!', W/2+2, 52);
+    ctx.fillStyle = '#F2C14E'; ctx.fillText('CAUGHT!', W/2, 50);
+  }
+  // particles
+  parts = parts.filter(p=>p.l>0);
+  parts.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=0.08; p.l--; ctx.fillStyle=p.c; ctx.fillRect(p.x|0, p.y|0, 2, 2); });
+  if (flash>0){ ctx.fillStyle = `rgba(255,60,60,${flash/30})`; ctx.fillRect(-4,0,W+8,H); flash--; }
+  ctx.restore();
+  requestAnimationFrame(scene);
+}
+function burst(x, y, colors){ for (let i=0;i<22;i++) parts.push({x, y, vx:(Math.random()-.5)*3, vy:-Math.random()*2.6, l:40, c:colors[i%colors.length]}); }
+
+/* ===================== GAME STATE ===================== */
+const $ = id => document.getElementById(id);
+const ov = $('ov'), optsEl = $('opts'), sentEl = $('sentence'), fbEl = $('fb');
+let G = null, timerRAF = null, qStart = 0, cur = null, lastTick = 0;
+function shuffle(a){ for (let i=a.length-1;i>0;i--){ const j = Math.random()*(i+1)|0; [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+function heartsHTML(n){
+  const full = '<svg viewBox="0 0 8 7"><path fill="#FF4FA3" d="M1 0h2v1h2V0h2v1h1v3H7v1H6v1H5v1H3V6H2V5H1V4H0V1h1z"/></svg>';
+  const empty = '<svg viewBox="0 0 8 7"><path fill="#4A4478" d="M1 0h2v1h2V0h2v1h1v3H7v1H6v1H5v1H3V6H2V5H1V4H0V1h1z"/></svg>';
+  let h=''; for (let i=0;i<5;i++) h += i<n ? full : empty; return h;
+}
+function hud(){
+  $('hearts').innerHTML = heartsHTML(G ? G.hearts : 5);
+  $('score').textContent = G ? G.score : 0;
+  $('lvl').textContent = G ? `CASE ${G.li+1}/4` : 'CASE 0/4';
+  const m = G ? mult() : 1;
+  $('combo').textContent = m>1 ? `x${m} COMBO` : '';
+}
+function mult(){ return G.combo>=6 ? 3 : G.combo>=3 ? 2 : 1; }
+function makePool(tenses){
+  let p = [];
+  Q.forEach((q,i)=>{ if (tenses.includes(q[0])) p.push({k:'q'+i, q}); });
+  if (tenses.includes('aux')) AUX.forEach((a,i)=>p.push({k:'a'+i, a}));
+  const fresh = p.filter(x=>!G.used.has(x.k));
+  return shuffle(fresh.length>=10 ? fresh : p);
+}
+function build(item){
+  if (item.a){ const [t,s,o,c,tw] = item.a; return {t, s, opts:shuffle(o.slice()), correct:c, tw}; }
+  const q = item.q; const f = forms(q);
+  return {t:q[0], s:q[3], opts:shuffle([f.past,f.usual,f.now,f.fut]), correct:f[q[0]], tw:q[4]};
+}
+function hlSentence(s, tw, fill){
+  let h = esc(s);
+  const i = h.toLowerCase().indexOf(tw.toLowerCase());
+  if (i>=0) h = h.slice(0,i) + '<span class="tw">' + h.slice(i, i+tw.length) + '</span>' + h.slice(i+tw.length);
+  return h.replace('___', fill);
+}
+
+/* ---------- screens ---------- */
+function title(){
+  G = null; hud(); stopMusic();
+  theme = THEMES.city; sus = ['joe','mia','tony']; gap = 5; caughtT = 0;
+  const best = load('heist-best', 0);
+  ov.hidden = false;
+  ov.innerHTML = `
+    <div class="logo">THE HEIST</div>
+    <div class="subtitle">PIXEL DETECTIVE</div>
+    <p class="star">Starring Detective Evgeniy</p>
+    <p class="how">The gang is running away with the Pink Diamond! Look at the <span style="background:#5A4A10;padding:0 .2em">time word</span>, choose the right tense, and catch them. Fast answers = more points. Three in a row = combo!</p>
+    <div class="chips"><span class="chip c-past">LAST FRIDAY</span><span class="chip c-usual">USUALLY</span><span class="chip c-now">RN</span><span class="chip c-fut">NEXT WEEK</span></div>
+    <div class="row"><button class="btn" id="go">START THE CASE</button></div>
+    <div class="best">BEST SCORE: ${best}</div>`;
+  $('go').onclick = () => { sfx.start(); newGame(); };
+  $('go').focus();
+  sentEl.textContent = 'Get ready, Detective…'; optsEl.innerHTML = ''; fbEl.innerHTML = ''; $('qnum').textContent = 'CLUE 1';
+}
+function newGame(){
+  G = {li:0, hearts:5, score:0, combo:0, used:new Set(), stats:{past:[0,0],usual:[0,0],now:[0,0],fut:[0,0]}, mistakes:[], clue:0, levelScore:0};
+  intro();
+}
+function intro(){
+  const L = LEVELS[G.li];
+  theme = THEMES[L.theme]; sus = L.sus.slice(); gap = L.gap; gapAnim = L.gap+2; caughtT = 0;
+  hud(); stopMusic();
+  ov.hidden = false;
+  const imgs = L.sus.map(n=>`<img class="sprite" alt="" src="${spriteURL(n)}">`).join('');
+  const chips = L.tenses.map(t => t==='aux' ? '<span class="chip c-aux">QUESTIONS</span>' : `<span class="chip c-${t}">${LABEL[t]}</span>`).join('');
+  ov.innerHTML = `
+    <div class="place">CASE ${G.li+1} OF 4 · ${L.place}</div>
+    <div class="row">${imgs}</div>
+    <div class="big">${L.name}</div>
+    <p class="quote">${L.text}</p>
+    <div class="chips">${chips}</div>
+    <div class="row"><button class="btn" id="go">GO! (ENTER)</button></div>`;
+  $('go').onclick = startLevel; $('go').focus();
+}
+function startLevel(){
+  const L = LEVELS[G.li];
+  ov.hidden = true; ov.innerHTML = '';
+  G.pool = makePool(L.tenses); G.levelScore = G.score; G.clue = 0;
+  startMusic(G.li===3);
+  next();
+}
+function next(){
+  const L = LEVELS[G.li];
+  if (!G.pool.length) G.pool = makePool(L.tenses);
+  const item = G.pool.pop(); G.used.add(item.k);
+  cur = build(item); G.clue++;
+  $('qnum').textContent = `CLUE ${G.clue}`;
+  sentEl.innerHTML = hlSentence(cur.s, cur.tw, '<span class="blank">&nbsp;</span>');
+  fbEl.innerHTML = '';
+  optsEl.innerHTML = cur.opts.map((o,i)=>`<button class="opt" data-o="${esc(o)}"><kbd>${i+1}</kbd><span>${esc(o)}</span></button>`).join('');
+  optsEl.querySelectorAll('.opt').forEach(b => b.onclick = () => answer(b.dataset.o));
+  G.state = 'q'; qStart = performance.now(); lastTick = 0;
+  cancelAnimationFrame(timerRAF); timerLoop();
+}
+function timerLoop(){
+  if (!G || G.state!=='q') return;
+  const L = LEVELS[G.li];
+  const left = L.time - (performance.now()-qStart)/1000;
+  const pct = Math.max(0, left/L.time*100);
+  $('tbar').style.width = pct + '%';
+  $('timer').classList.toggle('low', left < 4);
+  if (left < 4 && Math.ceil(left) !== lastTick){ lastTick = Math.ceil(left); if (left>0) sfx.tick(); }
+  if (left <= 0){ answer(null); return; }
+  timerRAF = requestAnimationFrame(timerLoop);
+}
+function answer(o){
+  if (!G || G.state!=='q') return;
+  G.state = 'fb'; cancelAnimationFrame(timerRAF);
+  const L = LEVELS[G.li];
+  const ok = o === cur.correct;
+  const left = Math.max(0, L.time - (performance.now()-qStart)/1000);
+  G.stats[cur.t][1]++;
+  optsEl.querySelectorAll('.opt').forEach(b=>{
+    b.disabled = true;
+    if (b.dataset.o===cur.correct) b.classList.add('right');
+    else if (b.dataset.o===o) b.classList.add('wrong');
+  });
+  const filled = hlSentence(cur.s, cur.tw, `<span class="ans" style="background:var(--${cur.t})">${esc(cur.correct)}</span>`);
+  const tag = `<span class="tag" style="background:var(--${cur.t})">${LABEL[cur.t]}</span>`;
+  if (ok){
+    G.stats[cur.t][0]++;
+    const before = mult(); G.combo++; const m = mult();
+    const pts = (100 + Math.ceil(left)*10) * m;
+    G.score += pts; gap = Math.max(0, gap-1); boost = 24;
+    burst(160, 120, ['#F2C14E','#FF4FA3','#FFFFFF']);
+    sfx.ok(); if (m>before) setTimeout(sfx.combo, 140);
+    sentEl.innerHTML = filled;
+    fbEl.innerHTML = `${tag} Nice! +${pts}${m>1?` (x${m} combo)`:''}`;
+    hud();
+    setTimeout(()=>{ if (gap<=0) caught(); else next(); }, 1150);
+  } else {
+    G.combo = 0; G.hearts--; gap = Math.min(8, gap+1); shake = 14; flash = 18;
+    sfx.bad();
+    G.mistakes.push({s:cur.s, c:cur.correct, t:cur.t});
+    sentEl.innerHTML = filled;
+    fbEl.innerHTML = `${tag} ${o===null?'Too slow!':'Not quite.'} <span class="rule">“${esc(cur.tw)}” → ${RULE[cur.t]}</span>
+      <div style="margin-top:10px"><button class="btn" id="cont">GOT IT (ENTER)</button></div>`;
+    hud();
+    $('cont').onclick = () => { if (G.hearts<=0) gameOver(); else next(); };
+    $('cont').focus();
+  }
+}
+function caught(){
+  const L = LEVELS[G.li];
+  G.state = 'caught'; caughtT = 1; stopMusic(); sfx.caught();
+  burst(200, 110, ['#F2C14E','#FFFFFF','#FF4FA3']);
+  setTimeout(()=>{
+    ov.hidden = false;
+    const last = G.li===LEVELS.length-1;
+    ov.innerHTML = `
+      <div class="big">CAUGHT!</div>
+      <div class="place">${L.name} · CASE ${G.li+1} CLOSED</div>
+      <div class="row">${L.sus.map(n=>`<img class="sprite" alt="" src="${spriteURL(n)}">`).join('')}</div>
+      <p class="quote">${L.quip}</p>
+      <div class="row"><button class="btn" id="go">${last?'SEE THE REPORT':'NEXT CASE'} (ENTER)</button></div>`;
+    $('go').onclick = () => { if (last) finish(); else { G.li++; intro(); } };
+    $('go').focus();
+  }, 1500);
+}
+function gameOver(){
+  G.state = 'over'; stopMusic(); sfx.over();
+  ov.hidden = false;
+  ov.innerHTML = `
+    <div class="big" style="color:#FF5A4E">THEY ESCAPED!</div>
+    <p class="quote">No hearts left. ${LEVELS[G.li].name} is laughing at you… Try again, Detective!</p>
+    <div class="row"><button class="btn" id="go">TRY THIS CASE AGAIN</button><button class="btn ghost" id="menu">MENU</button></div>`;
+  $('go').onclick = () => { G.hearts = 3; G.combo = 0; G.score = G.levelScore; intro(); };
+  $('menu').onclick = title; $('go').focus();
+}
+function finish(){
+  G.state = 'end';
+  const tot = Object.values(G.stats).reduce((a,[c,n])=>[a[0]+c,a[1]+n],[0,0]);
+  const acc = tot[1] ? Math.round(tot[0]/tot[1]*100) : 0;
+  const rank = acc>=90 ? 'LEGEND DETECTIVE' : acc>=75 ? 'INSPECTOR' : acc>=55 ? 'DETECTIVE' : 'ROOKIE COP';
+  const best = Math.max(load('heist-best',0), G.score); save('heist-best', best);
+  const rows = Object.entries(G.stats).map(([t,[c,n]])=>{
+    const p = n ? Math.round(c/n*100) : 0;
+    return `<span>${LABEL[t]}</span><div class="bar"><i style="width:${p}%;background:var(--${t})"></i></div><span>${c}/${n}</span>`;
+  }).join('');
+  const notes = G.mistakes.length
+    ? `<p class="place" style="margin-top:6px">CASE NOTES: STUDY THESE</p><ul class="notes">${G.mistakes.slice(0,8).map(m=>`<li>${esc(m.s).replace('___','<b>'+esc(m.c)+'</b>')}</li>`).join('')}</ul>`
+    : '<p class="quote">No mistakes. Perfect case!</p>';
+  ov.hidden = false;
+  ov.innerHTML = `
+    <div class="logo" style="font-size:clamp(20px,5vw,32px)">CASE CLOSED</div>
+    <div class="big">${rank}</div>
+    <div class="place">SCORE ${G.score} · BEST ${best} · ACCURACY ${acc}%</div>
+    <div class="stats">${rows}</div>
+    ${notes}
+    <div class="row"><button class="btn" id="go">PLAY AGAIN</button></div>`;
+  $('go').onclick = () => { sfx.start(); newGame(); }; $('go').focus();
+  hud();
+}
+
+/* ---------- input ---------- */
+document.addEventListener('keydown', e=>{
+  if (G && G.state==='q' && /^[1-4]$/.test(e.key)){
+    const b = optsEl.querySelectorAll('.opt')[+e.key-1]; if (b) b.click(); e.preventDefault();
+  } else if (e.key==='Enter'){
+    const b = document.activeElement && document.activeElement.classList.contains('btn') ? null : (ov.hidden ? $('cont') : $('go'));
+    if (b){ b.click(); e.preventDefault(); }
+  }
+});
+const muteBtn = $('mute');
+function muteUI(){ muteBtn.textContent = muted ? '♪ OFF' : '♪ ON'; }
+muteBtn.onclick = () => { muted = !muted; save('heist-muted', muted); muteUI();
+  if (!muted && G && G.state==='q' && !musicTimer) startMusic(G.li===3); if (muted) {} };
+muteUI();
+
+/* ---------- boot ---------- */
+(document.fonts && document.fonts.load ? document.fonts.load('12px "Press Start 2P"') : Promise.resolve()).finally(()=>{});
+title();
+requestAnimationFrame(scene);
+})();
+</script>
+</body>
+</html>
